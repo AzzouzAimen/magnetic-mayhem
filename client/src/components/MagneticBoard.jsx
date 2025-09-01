@@ -3,7 +3,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 
 
-const MagneticBoard = ({ socket }) => {
+const MagneticBoard = ({ socket, isDrawer }) => {
   // Refs and State
   const canvasRef = useRef(null); // A ref to our canvas element
   const [isDrawing, setIsDrawing] = useState(false); // A state to track if the mouse is down
@@ -124,15 +124,21 @@ const MagneticBoard = ({ socket }) => {
           onMouseMove={draw}
           onMouseUp={stopDrawing}
           onMouseLeave={stopDrawing}
-          className="w-full h-full bg-gray-300 rounded-lg cursor-crosshair"
+          // Conditionally add a class to disable drawing
+          className={`w-full h-full bg-gray-300 rounded-lg ${
+            isDrawer ? 'cursor-crosshair' : 'cursor-not-allowed'
+          }`}
         />
       </div>
-      <button
-        onClick={clearCanvas}
-        className="px-6 py-2 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition"
-      >
-        Clear Board
-      </button>
+      {/* Conditionally render the clear button */}
+      {isDrawer && (
+        <button
+          onClick={clearCanvas}
+          className="px-6 py-2 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition"
+        >
+          Clear Board
+        </button>
+      )}
     </div>
   );
 };
