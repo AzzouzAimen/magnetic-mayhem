@@ -1,0 +1,29 @@
+# Dependency directories
+client/node_modules/
+server/node_modules/
+
+# Vite build output
+client/dist/
+
+# Environment variables
+.env
+.env.*
+
+server/.env
+    
+# IDE / OS files
+.DS_Store
+.vscode/
+
+# Logs
+client/logs
+client/*.log
+client/npm-debug.log*
+
+client/dist
+client/dist-ssr
+client/*.local
+
+# Editor directories and files
+client/.vscode/*
+
