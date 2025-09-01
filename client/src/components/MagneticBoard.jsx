@@ -3,10 +3,13 @@
 import React, { useRef, useState, useEffect } from 'react';
 
 
-const MagneticBoard = () => {
+const MagneticBoard = ({ socket }) => {
   // Refs and State
   const canvasRef = useRef(null); // A ref to our canvas element
   const [isDrawing, setIsDrawing] = useState(false); // A state to track if the mouse is down
+
+  // A ref to store the last point to avoid re-renders
+  const lastPoint = useRef(null); 
 
   //  useEffect to get the drawing context
   useEffect(() => {
@@ -25,35 +28,91 @@ const MagneticBoard = () => {
     context.lineWidth = 10; // "Pen" thickness
 
   }, []); // Empty dependency array means this runs only once after component mounts
+  
+  // Helper function to draw a line segment - moved outside useEffect so it can be used anywhere
+  const drawLine = (start, end) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const context = canvas.getContext('2d');
+    context.beginPath();
+    context.moveTo(start.x, start.y);
+    context.lineTo(end.x, end.y);
+    context.stroke();
+    context.closePath();
+  };
+  
+  //useEffect for socket event listeners
+  useEffect(() => {
+    if (!socket || !canvasRef.current) return; // Don't run if socket is not available yet
+    socket.emit('history:request');
+
+    // --- Event Handlers ---
+    const handleDrawing = (data) => {
+        drawLine(data.start, data.end);
+    };
+    
+    const handleClear = () => {
+      const canvas = canvasRef.current;
+      const context = canvas.getContext('2d');
+      context.clearRect(0, 0, canvas.width, canvas.height);
+    };
+
+    // Handler for receiving the entire history 
+    const handleDrawHistory = (history) => {
+        history.forEach(item => {
+            if (item.type === 'drawing') {
+                drawLine(item.start, item.end);
+            }
+        });
+    };
+    
+    // --- Attach listeners ---
+    socket.on('draw:drawing', handleDrawing);
+    socket.on('clear', handleClear);
+    socket.on('draw:history', handleDrawHistory); // Listen for the history
+
+    // Clean up listeners
+    return () => {
+      socket.off('draw:drawing', handleDrawing);
+      socket.off('clear', handleClear);
+      socket.off('draw:history', handleDrawHistory);
+    };
+  }, [socket]); // Re-run effect if the socket instance changes
 
   // Drawing Functions
   const startDrawing = (event) => {
-    const { offsetX, offsetY } = event.nativeEvent;
-    const context = canvasRef.current.getContext('2d');
-    context.beginPath(); // Starts a new path
-    context.moveTo(offsetX, offsetY); // Moves the "pen" to the mouse position
     setIsDrawing(true);
+    const { offsetX, offsetY } = event.nativeEvent;
+    lastPoint.current = { x: offsetX, y: offsetY };
   };
 
   const draw = (event) => {
     if (!isDrawing) return; // Only draw if mouse is down
     const { offsetX, offsetY } = event.nativeEvent;
-    const context = canvasRef.current.getContext('2d');
-    context.lineTo(offsetX, offsetY); // Draws a line to the new mouse position
-    context.stroke(); // Renders the line
+
+    // Create the data object to send
+    const data = {
+        start: lastPoint.current,
+        end: { x: offsetX, y: offsetY }
+    };
+    
+
+    // Draw locally for immediate feedback
+    drawLine(data.start, data.end);
+    socket.emit('draw:drawing', data);
+    
+    // Update the last point
+    lastPoint.current = data.end;
   };
 
   const stopDrawing = () => {
-    const context = canvasRef.current.getContext('2d');
-    context.closePath(); // Closes the current path
     setIsDrawing(false);
+    lastPoint.current = null;
+    
   };
 
   const clearCanvas = () => {
-    const canvas = canvasRef.current;
-    const context = canvas.getContext('2d');
-    // Clear the entire canvas rectangle
-    context.clearRect(0, 0, canvas.width, canvas.height);
+    socket.emit('clear');
   };
 
   return (

@@ -1,31 +1,39 @@
-import { use, useEffect, useState } from 'react'
-import { io } from 'socket.io-client';
+import { use, useEffect, useState } from "react";
+import { io } from "socket.io-client";
 
-import MagneticBoard from './components/MagneticBoard';
+import MagneticBoard from "./components/MagneticBoard";
 
-const socket = io('http://localhost:3000');
+const socket = io("http://localhost:4001");
 
 function App() {
+  // useEffect to manage the connection
   useEffect(() => {
-    socket.on('connect', () => {
-      console.log(`Connected to server with id: ${socket.id}`);
-    });
+    // --- Define handlers ---
+    const onConnect = () => {
+      console.log(`✅ You're connected with id: ${socket.id}`);
+    };
 
-    socket.on('disconnect', () => {
-      console.log('Disconnected from server');
-    });
+    const onDisconnect = () => {
+      console.log('❌ You were disconnected.');
+    };
+    
+    // --- Attach listeners ---
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
 
+    // Clean up the connection when the component unmounts
     return () => {
-      socket.off('connect');
-      socket.off('disconnect');
+      socket.off('connect', onConnect);
+      socket.off('disconnect', onDisconnect);
     };
   }, []);
 
   return (
-   <div className="min-h-screen bg-gray-800 flex items-center justify-center">
-      <MagneticBoard />
+    <div className="min-h-screen bg-gray-800 flex items-center justify-center">
+      {/* Pass the socket instance down as a prop */}
+      <MagneticBoard socket={socket} />
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
