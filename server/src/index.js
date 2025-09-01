@@ -7,8 +7,9 @@ const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
 
-// Import our new handler
+// Import handlers
 const registerDrawingHandlers = require('./handlers/drawingHandler');
+const registerRoomHandlers = require('./handlers/roomHandler');
 
 const app = express();
 const server = http.createServer(app);
@@ -28,6 +29,7 @@ const onConnection = (socket) => {
 
   // Plug in the drawing handlers for this socket
   registerDrawingHandlers(io, socket);
+  registerRoomHandlers(io, socket);
 
   socket.on('disconnect', () => {
     console.log(`❌ Client disconnected: ${socket.id}`);

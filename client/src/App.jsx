@@ -1,4 +1,5 @@
 import { use, useEffect, useState } from "react";
+import { Outlet } from "react-router-dom";
 import { io } from "socket.io-client";
 
 import MagneticBoard from "./components/MagneticBoard";
@@ -29,10 +30,7 @@ function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-800 flex items-center justify-center">
-      {/* Pass the socket instance down as a prop */}
-      <MagneticBoard socket={socket} />
-    </div>
+    <Outlet context={{ socket }} />
   );
 }
 
