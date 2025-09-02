@@ -4,9 +4,10 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import App from './App.jsx'
+import './index.css'
 import HomePage from './pages/HomePage.jsx'; 
 import GamePage from './pages/GamePage.jsx'; 
-import './index.css'
+import SoloPage from './pages/SoloPage.jsx';
 
 //  Define our routes
 const router = createBrowserRouter([
@@ -21,6 +22,10 @@ const router = createBrowserRouter([
       {
         path: "game/:roomId",
         element: <GamePage />,
+      },
+      {
+        path: "solo",
+        element: <SoloPage />,
       },
     ],
   },

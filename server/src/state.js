@@ -12,13 +12,13 @@ const gameRooms = new Map();
 //   players: Map('socketId123': { id: 'socketId123', name: 'Player1' })
 // }
 
-const wordList = [
+const defaultWordList  = [
   "House", "Car", "Tree", "Sun", "Boat", "Star", "Fish", "Bird", "Apple", "Banana",
   "Dog", "Cat", "Book", "Chair", "Table", "Flower", "Key", "Moon", "Ball", "Cloud",
   "Bridge", "Mountain", "River", "Smile", "Heart", "Clock", "Guitar", "Pizza"
 ];
 const getRandomWord = () => {
-  return wordList[Math.floor(Math.random() * wordList.length)];
+  return defaultWordList [Math.floor(Math.random() * defaultWordList .length)];
 };
 
-module.exports = { drawingHistory, gameRooms, getRandomWord };
+module.exports = { drawingHistory, gameRooms, defaultWordList };

@@ -1,6 +1,7 @@
 import { use, useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 import { io } from "socket.io-client";
+import { Toaster } from 'react-hot-toast';
 
 import MagneticBoard from "./components/MagneticBoard";
 
@@ -30,7 +31,18 @@ function App() {
   }, []);
 
   return (
-    <Outlet context={{ socket }} />
+    <>
+      <Outlet context={{ socket }} />
+      <Toaster 
+        position="top-center"
+        toastOptions={{
+          style: {
+            background: '#333',
+            color: '#fff',
+          },
+        }}
+      />
+    </>
   );
 }
 

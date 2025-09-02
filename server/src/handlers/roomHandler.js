@@ -1,7 +1,16 @@
 // src/handlers/roomHandler.js
 
 const { nanoid } = require("nanoid");
-const { gameRooms, getRandomWord } = require("../state");
+const { gameRooms, defaultWordList } = require("../state");
+
+// Helper to shuffle an array
+const shuffleArray = (array) => {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+};
 
 const registerRoomHandlers = (io, socket) => {
   const updatePlayerList = (roomId) => {
@@ -15,6 +24,7 @@ const registerRoomHandlers = (io, socket) => {
 
   const createGame = (nickname) => {
     const roomId = nanoid(4);
+    console.log(`[Create Game] Generated room ID: "${roomId}"`);
     const newPlayer = { id: socket.id, name: nickname };
     const players = [newPlayer]; // The initial player list is just the creator
 
@@ -30,8 +40,10 @@ const registerRoomHandlers = (io, socket) => {
   };
 
   const joinGame = ({ roomId, nickname }) => {
+    console.log(`[Join Attempt] Room ID: "${roomId}", Available rooms:`, Array.from(gameRooms.keys()));
     const room = gameRooms.get(roomId);
     if (!room || room.players.size >= 8) {
+      console.log(`[Join Failed] Room not found or full. Room:`, room, `Players:`, room?.players?.size);
       return socket.emit("game:error", "Invalid room code or room is full.");
     }
     const newPlayer = { id: socket.id, name: nickname };
@@ -50,7 +62,7 @@ const registerRoomHandlers = (io, socket) => {
         room.players.delete(socket.id);
         // If the disconnected player was the host and the game stops
         if (room.players.size < 2) {
-            clearInterval(room.timerInterval);
+          clearInterval(room.timerInterval);
         }
         // If the room is now empty, delete it
         if (room.players.size === 0) {
@@ -64,10 +76,23 @@ const registerRoomHandlers = (io, socket) => {
   };
 
   const startNewRound = (roomId) => {
+    console.log(`[Start New Round] Starting new round for room: ${roomId}`);
     const room = gameRooms.get(roomId);
-    if (!room) return;
+    if (!room) {
+      console.log(`[Start New Round] Room not found: ${roomId}`);
+      return;
+    }
     // Clear previous timer if it exists
     if (room.timerInterval) clearInterval(room.timerInterval);
+
+    if (room.wordList.length === 0) {
+      console.log(`[Start New Round] Word list is empty for room: ${roomId}`);
+      // If we run out of words, end the game or reshuffle
+      io.to(roomId).emit("game:end", { message: "You ran out of words!" });
+      // TODO: Add a proper game end state
+      return;
+    }
+    const word = room.wordList.pop(); // Get the next word from the shuffled list
 
     // --- Round Logic ---
     // Select the next drawer (simple rotation for now)
@@ -78,27 +103,26 @@ const registerRoomHandlers = (io, socket) => {
     const nextDrawerIndex = (currentDrawerIndex + 1) % players.length;
     const nextDrawer = players[nextDrawerIndex];
 
-    // Choose a new word
-    const word = getRandomWord();
-
     // Update the server's game state for this room
     room.gameState = "drawing";
     room.currentDrawerId = nextDrawer.id;
     room.currentWord = word;
-    room.timer = 60;
+    room.timer = room.roundTime;
 
     console.log(
-      `[New Round] Room: ${roomId}, Drawer: ${nextDrawer.name}, Word: ${word}`
+      `[New Round] Room: ${roomId}, Drawer: ${nextDrawer.name}, Word: ${word}, Time: ${room.timer}s`
     );
 
     // Notify ALL players in the room about the new round
-    io.to(roomId).emit("round:start", {
+    console.log(`[Start New Round] Emitting round:start to room ${roomId} with drawer: ${nextDrawer.name} (${nextDrawer.id})`);
+    io.to(roomId).emit('round:start', {
       drawerId: nextDrawer.id,
-      roundDuration: 60, // Send initial duration
+      roundDuration: room.roundTime, // Send the correct duration
     });
 
     // Send the secret word ONLY to the new drawer
-    io.to(nextDrawer.id).emit("round:word", word);
+    console.log(`[Start New Round] Sending word "${word}" to drawer: ${nextDrawer.name}`);
+    io.to(nextDrawer.id).emit('round:word', word);
     // Start the countdown interval
     room.timerInterval = setInterval(() => {
       room.timer -= 1;
@@ -118,21 +142,35 @@ const registerRoomHandlers = (io, socket) => {
     }, 1000); // Run every second
   };
 
-  const startGame = (roomId) => {
+  const startGame = ({ roomId, options }) => {
+    console.log(`[Start Game] Attempting to start game for room: ${roomId} with options:`, options);
     const room = gameRooms.get(roomId);
-    if (!room) return;
-
-    // Check if the person starting the game is the host
+    if (!room) {
+      console.log(`[Start Game] Room not found: ${roomId}`);
+      return;
+    }
+    
     const hostId = Array.from(room.players.keys())[0];
+    console.log(`[Start Game] Host ID: ${hostId}, Current socket ID: ${socket.id}`);
     if (socket.id === hostId) {
-      // Initialize the scores and other game state properties
-      room.players.forEach((player) => (player.score = 0));
-      room.currentDrawerId = null; // So the first round picks the first player
-
-      console.log(
-        `[Game Started] Host ${socket.id} started game in room ${roomId}`
-      );
+      // Configure the game based on options
+      room.roundTime = options?.roundTime || 60;
+      
+      // Set up the word list for the entire game
+      if (options?.customWords && options.customWords.length > 0) {
+        room.wordList = shuffleArray([...options.customWords]);
+      } else {
+        room.wordList = shuffleArray([...defaultWordList]);
+      }
+      
+      // Initialize scores
+      room.players.forEach(player => player.score = 0);
+      room.currentDrawerId = null;
+      
+      console.log(`[Game Started] Room: ${roomId} with options:`, options, `Word list length:`, room.wordList.length);
       startNewRound(roomId);
+    } else {
+      console.log(`[Start Game] Socket ${socket.id} is not the host ${hostId}`);
     }
   };
 
