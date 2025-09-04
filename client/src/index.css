@@ -4,3 +4,20 @@
 @theme {
     --font-sans: "Nunito", sans-serif;
 }
+
+@keyframes gradient-flow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  
+  .animate-gradient-flow {
+    animation: gradient-flow 15s ease infinite;
+  }
+
+.pen-cursor {
+    /* You will need to find a pen icon and place it in your /public folder */
+    /* For example, if you have /public/pen-cursor.svg */
+    /* The numbers '8 30' are the X and Y coordinates of the cursor's "tip" */
+    cursor: url('/pen-cursor.png') 0 48, crosshair;
+  }

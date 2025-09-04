@@ -11,6 +11,14 @@ const MagneticBoard = ({
   const contextRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const lastPoint = useRef(null);
+  const lastErasePosition = useRef(null);
+
+  // Reset erase position when progress is null (new round)
+  useEffect(() => {
+    if (eraseProgress === null) {
+      lastErasePosition.current = null;
+    }
+  }, [eraseProgress]);
 
   // useEffect to watch for erase commands
   useEffect(() => {
@@ -18,10 +26,32 @@ const MagneticBoard = ({
       const canvas = canvasRef.current;
       const context = contextRef.current;
       if (canvas && context) {
-        // Calculate the width to clear based on progress
-        const clearWidth = canvas.width * eraseProgress;
-        // Erase from the right side back to the cleared width
-        context.clearRect(0, 0, clearWidth, canvas.height);
+        // Calculate the erase position and width for bidirectional erasing
+        const erasePosition = canvas.width * eraseProgress;
+        const eraseWidth = 80; // Width of the erase area
+        
+        // Calculate the start and end positions for bidirectional erasing
+        const startX = Math.max(0, erasePosition - eraseWidth / 2);
+        const endX = Math.min(canvas.width, erasePosition + eraseWidth / 2);
+        const actualWidth = endX - startX;
+        
+        // If we have a previous position, fill any gaps between positions
+        if (lastErasePosition.current !== null) {
+          const prevPosition = lastErasePosition.current;
+          const gapStart = Math.min(prevPosition - eraseWidth / 2, startX);
+          const gapEnd = Math.max(prevPosition + eraseWidth / 2, endX);
+          const gapWidth = gapEnd - gapStart;
+          
+          // Erase the entire gap area to prevent missing spots
+          context.clearRect(gapStart, 0, gapWidth, canvas.height);
+        } else {
+          // First erase - just erase the current position
+          context.clearRect(startX, 0, actualWidth, canvas.height);
+        }
+        
+        // Store the current position for next time
+        lastErasePosition.current = erasePosition;
+        
         // Redraw the hex pattern in the cleared area
         const rect = canvas.getBoundingClientRect();
         drawHexPattern(context, { width: rect.width, height: rect.height });
@@ -240,8 +270,8 @@ const MagneticBoard = ({
         onMouseUp={isDrawer ? stopDrawing : undefined}
         onMouseLeave={isDrawer ? stopDrawing : undefined}
         className={`w-full h-full bg-stone-200 rounded-lg ${
-          isDrawer ? "cursor-crosshair" : "cursor-not-allowed"
-        }`}
+          isDrawer && activeTool === 'pen' ? 'pen-cursor' : ''
+        } ${!isDrawer ? 'cursor-not-allowed' : ''}`}
       />
     </div>
   );

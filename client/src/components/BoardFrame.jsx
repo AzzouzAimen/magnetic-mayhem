@@ -1,7 +1,7 @@
 // src/components/BoardFrame.jsx
 
 import React from 'react';
-import frameSvg from "../assets/board-frame.svg.svg"; // Vite handles importing SVGs as URLs
+import frameSvg from "../assets/board-frame.svg"; // Vite handles importing SVGs as URLs
 
 const BoardFrame = ({ canvas, tools }) => {
   return (
@@ -12,10 +12,10 @@ const BoardFrame = ({ canvas, tools }) => {
         width: '55vw', // Use almost full viewport width
         maxWidth: '1400px', // Set a maximum size for very large screens
         aspectRatio: '1022 / 740', // Match the actual SVG dimensions
-        backgroundImage: `url(${frameSvg})`,
-        backgroundSize: 'contain',
-        backgroundRepeat: 'no-repeat',
-        backgroundPosition: 'center',
+        // backgroundImage: `url(${frameSvg})`,
+        // backgroundSize: 'contain',
+        // backgroundRepeat: 'no-repeat',
+        // backgroundPosition: 'center',
       }}
     >
       {/* --- LAYER 1: The Canvas --- */}

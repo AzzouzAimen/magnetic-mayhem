@@ -25,13 +25,14 @@ useEffect(() => {
       let mouseX = e.clientX - trackRect.left;
 
       // Clamp the position to stay within the track boundaries
+      // Use the full handle width to keep it completely within the track
       mouseX = Math.max(
-        handleWidth / 2,
-        Math.min(mouseX, trackRect.width - handleWidth / 2)
+        handleWidth,
+        Math.min(mouseX, trackRect.width - handleWidth)
       );
 
       const progress =
-        (mouseX - handleWidth / 2) / (trackRect.width - handleWidth);
+        (mouseX - handleWidth) / (trackRect.width - handleWidth);
 
       // Update the handle's visual position
       handleRef.current.style.left = `${progress * 100}%`;
