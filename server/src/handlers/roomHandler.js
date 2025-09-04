@@ -40,15 +40,27 @@ const registerRoomHandlers = (io, socket) => {
   };
 
   const joinGame = ({ roomId, nickname }) => {
-    console.log(`[Join Attempt] Room ID: "${roomId}", Available rooms:`, Array.from(gameRooms.keys()));
+    console.log(
+      `[Join Attempt] Room ID: "${roomId}", Available rooms:`,
+      Array.from(gameRooms.keys())
+    );
     const room = gameRooms.get(roomId);
     if (!room || room.players.size >= 8) {
-      console.log(`[Join Failed] Room not found or full. Room:`, room, `Players:`, room?.players?.size);
+      console.log(
+        `[Join Failed] Room not found or full. Room:`,
+        room,
+        `Players:`,
+        room?.players?.size
+      );
       return socket.emit("game:error", "Invalid room code or room is full.");
     }
     const newPlayer = { id: socket.id, name: nickname };
     room.players.set(socket.id, newPlayer);
     socket.join(roomId);
+    io.to(roomId).emit('chat:message', {
+      type: 'system',
+      text: `${nickname} has joined the game!`
+    });
     const players = Array.from(room.players.values()); // Get the updated list of players
     // Send the confirmation and the FULL player list back to the joiner
     socket.emit("game:joined", { roomId, players });
@@ -59,7 +71,12 @@ const registerRoomHandlers = (io, socket) => {
     // Find which room the socket is in
     for (const [roomId, room] of gameRooms.entries()) {
       if (room.players.has(socket.id)) {
+        const leavingPlayer = room.players.get(socket.id);
         room.players.delete(socket.id);
+        io.to(roomId).emit('chat:message', {
+          type: 'system',
+          text: `${leavingPlayer.name} has left the game.`
+        });
         // If the disconnected player was the host and the game stops
         if (room.players.size < 2) {
           clearInterval(room.timerInterval);
@@ -85,11 +102,22 @@ const registerRoomHandlers = (io, socket) => {
     // Clear previous timer if it exists
     if (room.timerInterval) clearInterval(room.timerInterval);
 
+    // --- NEW: Check for Game Over condition ---
+    if (room.currentRound > room.totalRounds) {
+      console.log(`[Game Over] Room: ${roomId}`);
+      room.gameState = 'results';
+      // Sort players by score for the final scoreboard
+      const finalScores = Array.from(room.players.values()).sort((a, b) => b.score - a.score);
+      io.to(roomId).emit('game:over', finalScores);
+      return; // Stop the round loop
+    }
+
     if (room.wordList.length === 0) {
       console.log(`[Start New Round] Word list is empty for room: ${roomId}`);
-      // If we run out of words, end the game or reshuffle
-      io.to(roomId).emit("game:end", { message: "You ran out of words!" });
-      // TODO: Add a proper game end state
+      // If we run out of words, end the game with final scores
+      room.gameState = 'results';
+      const finalScores = Array.from(room.players.values()).sort((a, b) => b.score - a.score);
+      io.to(roomId).emit('game:over', finalScores);
       return;
     }
     const word = room.wordList.pop(); // Get the next word from the shuffled list
@@ -97,9 +125,14 @@ const registerRoomHandlers = (io, socket) => {
     // --- Round Logic ---
     // Select the next drawer (simple rotation for now)
     const players = Array.from(room.players.values());
-    const currentDrawerIndex = players.findIndex(
-      (p) => p.id === room.currentDrawerId
-    );
+    if (players.length === 0) {
+      console.log(`[Start New Round] No players in room: ${roomId}`);
+      return;
+    }
+    
+    const currentDrawerIndex = room.currentDrawerId 
+      ? players.findIndex((p) => p.id === room.currentDrawerId)
+      : -1;
     const nextDrawerIndex = (currentDrawerIndex + 1) % players.length;
     const nextDrawer = players[nextDrawerIndex];
 
@@ -108,21 +141,28 @@ const registerRoomHandlers = (io, socket) => {
     room.currentDrawerId = nextDrawer.id;
     room.currentWord = word;
     room.timer = room.roundTime;
+    room.currentRound += 1; // Increment the round counter
 
     console.log(
-      `[New Round] Room: ${roomId}, Drawer: ${nextDrawer.name}, Word: ${word}, Time: ${room.timer}s`
+      `[New Round ${room.currentRound}/${room.totalRounds}] Room: ${roomId}, Drawer: ${nextDrawer.name}, Word: ${word}, Time: ${room.timer}s`
     );
 
     // Notify ALL players in the room about the new round
-    console.log(`[Start New Round] Emitting round:start to room ${roomId} with drawer: ${nextDrawer.name} (${nextDrawer.id})`);
-    io.to(roomId).emit('round:start', {
+    console.log(
+      `[Start New Round] Emitting round:start to room ${roomId} with drawer: ${nextDrawer.name} (${nextDrawer.id})`
+    );
+    io.to(roomId).emit("round:start", {
       drawerId: nextDrawer.id,
       roundDuration: room.roundTime, // Send the correct duration
+      currentRound: room.currentRound,
+      totalRounds: room.totalRounds,
     });
 
     // Send the secret word ONLY to the new drawer
-    console.log(`[Start New Round] Sending word "${word}" to drawer: ${nextDrawer.name}`);
-    io.to(nextDrawer.id).emit('round:word', word);
+    console.log(
+      `[Start New Round] Sending word "${word}" to drawer: ${nextDrawer.name}`
+    );
+    io.to(nextDrawer.id).emit("round:word", word);
     // Start the countdown interval
     room.timerInterval = setInterval(() => {
       room.timer -= 1;
@@ -131,9 +171,9 @@ const registerRoomHandlers = (io, socket) => {
 
       if (room.timer <= 0) {
         clearInterval(room.timerInterval);
-        io.to(roomId).emit("round:end", {
-          guesserName: null, // No one guessed
-          correctWord: room.currentWord,
+        io.to(roomId).emit('chat:message', {
+          type: 'system',
+          text: `Time's up! The word was: ${room.currentWord}`
         });
 
         // Start next round after a delay
@@ -143,31 +183,45 @@ const registerRoomHandlers = (io, socket) => {
   };
 
   const startGame = ({ roomId, options }) => {
-    console.log(`[Start Game] Attempting to start game for room: ${roomId} with options:`, options);
+    console.log(
+      `[Start Game] Attempting to start game for room: ${roomId} with options:`,
+      options
+    );
     const room = gameRooms.get(roomId);
     if (!room) {
       console.log(`[Start Game] Room not found: ${roomId}`);
       return;
     }
-    
+
     const hostId = Array.from(room.players.keys())[0];
-    console.log(`[Start Game] Host ID: ${hostId}, Current socket ID: ${socket.id}`);
+    console.log(
+      `[Start Game] Host ID: ${hostId}, Current socket ID: ${socket.id}`
+    );
     if (socket.id === hostId) {
       // Configure the game based on options
       room.roundTime = options?.roundTime || 60;
-      
+
       // Set up the word list for the entire game
       if (options?.customWords && options.customWords.length > 0) {
         room.wordList = shuffleArray([...options.customWords]);
       } else {
         room.wordList = shuffleArray([...defaultWordList]);
       }
-      
+
+      // --- NEW: Initialize round counters ---
+      room.totalRounds = room.players.size * 2; // e.g., 2 rounds per player
+      room.currentRound = 0; // Will be incremented to 1 in startNewRound
+
       // Initialize scores
-      room.players.forEach(player => player.score = 0);
+      room.players.forEach((player) => (player.score = 0));
       room.currentDrawerId = null;
-      
-      console.log(`[Game Started] Room: ${roomId} with options:`, options, `Word list length:`, room.wordList.length);
+
+      console.log(
+        `[Game Started] Room: ${roomId} with options:`,
+        options,
+        `Word list length:`,
+        room.wordList.length
+      );
       startNewRound(roomId);
     } else {
       console.log(`[Start Game] Socket ${socket.id} is not the host ${hostId}`);
@@ -193,6 +247,12 @@ const registerRoomHandlers = (io, socket) => {
           guesser.score += 100;
           if (drawer) drawer.score += 75;
 
+          // System message for correct guess
+          io.to(roomId).emit("chat:message", {
+            type: "system",
+            text: `${guesser.name} guessed the word: ${room.currentWord}!`,
+          });
+
           console.log(
             `[Correct Guess] Room: ${roomId}, Player: ${guesser.name}`
           );
@@ -214,6 +274,7 @@ const registerRoomHandlers = (io, socket) => {
           // Broadcast the incorrect guess as a chat message
           const player = room.players.get(socket.id);
           io.to(roomId).emit("chat:message", {
+            type: "chat",
             name: player.name,
             message: guess,
           });
@@ -223,9 +284,34 @@ const registerRoomHandlers = (io, socket) => {
     }
   };
 
+  // --- NEW: Handler to play again ---
+  const handlePlayAgain = (roomId) => {
+    const room = gameRooms.get(roomId);
+    if (!room) return;
+
+    // Only the host can restart the game
+    const hostId = Array.from(room.players.keys())[0];
+    if (socket.id === hostId) {
+      console.log(`[Play Again] Room ${roomId} is returning to lobby.`);
+      room.gameState = 'lobby';
+      // Clear any running timer
+      if (room.timerInterval) clearInterval(room.timerInterval);
+      // Reset relevant game properties but keep players
+      room.wordList = [];
+      room.currentDrawerId = null;
+      room.currentWord = '';
+      room.currentRound = 0; // Reset round counter
+      room.totalRounds = 0; // Reset total rounds
+      
+      // Tell all clients to go back to the lobby state
+      io.to(roomId).emit('game:lobby');
+    }
+  };
+
   socket.on("game:create", createGame);
   socket.on("game:join", joinGame);
   socket.on("game:start", startGame);
+  socket.on("game:playAgain", handlePlayAgain); // Register the new handler
   socket.on("disconnect", leaveGame);
   socket.on("game:guess", handleGuess);
 };

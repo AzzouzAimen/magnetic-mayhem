@@ -1,14 +1,88 @@
-// src/components/EraserSlider.jsx
-import React from 'react';
+import React, { useState, useRef, useEffect } from "react";
 
-const EraserSlider = () => {
+const EraserSlider = ({ position, onErase, onEraseComplete }) => {
+  const trackRef = useRef(null);
+  const handleRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isDragging || !trackRef.current) return;
+
+      const trackRect = trackRef.current.getBoundingClientRect();
+      const handleWidth = handleRef.current.offsetWidth;
+
+      // Calculate position of the mouse relative to the track
+      let mouseX = e.clientX - trackRect.left;
+
+      // Clamp the position to stay within the track boundaries
+      mouseX = Math.max(
+        handleWidth / 2,
+        Math.min(mouseX, trackRect.width - handleWidth / 2)
+      );
+
+      const progress =
+        (mouseX - handleWidth / 2) / (trackRect.width - handleWidth);
+
+      // Update the handle's visual position
+      handleRef.current.style.left = `${progress * 100}%`;
+
+      // Call the callback to erase the canvas in real-time
+      if (onErase) {
+        onErase(progress);
+      }
+    };
+
+    const handleMouseUp = () => {
+      if (!isDragging) return;
+      setIsDragging(false);
+
+      // Call the final callback for networking
+      if (onEraseComplete) {
+        const trackRect = trackRef.current.getBoundingClientRect();
+        const handleWidth = handleRef.current.offsetWidth;
+        const finalProgress =
+          (parseFloat(handleRef.current.style.left) || 0) / 100;
+        onEraseComplete(finalProgress);
+      }
+    };
+
+    // Add listeners to the window so dragging works even if the cursor leaves the slider
+    if (isDragging) {
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
+    }
+
+    // Cleanup function to remove listeners
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDragging, onErase, onEraseComplete]);
+
+  const handleMouseDown = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
   return (
-    <div 
+    <div
+      ref={trackRef}
       className="absolute h-6 bg-green-700 rounded-full flex items-center px-1 pointer-events-auto"
-      style={{ bottom: '5.1%', left: '13%', width: '74%' }}
+      style={position}
     >
-      <div className="w-10 h-8 bg-stone-200 rounded-md shadow-md cursor-grab"></div>
-      </div>
+      <div
+        ref={handleRef}
+        onMouseDown={handleMouseDown}
+        //className="absolute top-1/2 -translate-y-1/2 w-10 h-8 bg-stone-200 rounded-md shadow-md cursor-grab active:cursor-grabbing"
+        className="absolute top-1/2 -translate-y-1/2 bg-stone-200 rounded-md shadow-md cursor-grab active:cursor-grabbing"
+        style={{
+          width: '15%',
+          height: '70%',
+          left: "0%"// Initial position
+        }}
+      ></div>
+    </div>
   );
 };
 export default EraserSlider;

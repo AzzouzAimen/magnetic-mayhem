@@ -1,91 +1,76 @@
-// src/components/ChatBox.jsx
-
 import React, { useState, useEffect, useRef } from "react";
 
 const ChatBox = ({ socket, isDrawer }) => {
   const [guess, setGuess] = useState("");
   const [messages, setMessages] = useState([]);
-  const messagesEndRef = useRef(null); // Ref to auto-scroll
+  const messagesEndRef = useRef(null);
 
-  // Auto-scroll to the bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   useEffect(() => {
     if (!socket) return;
-
     const handleChatMessage = (message) => {
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        { type: "chat", ...message },
-      ]);
+      setMessages((prevMessages) => [...prevMessages, message]);
     };
-
-    const handleRoundEnd = ({ guesserName, correctWord }) => {
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        {
-          type: "announcement",
-          text: `${guesserName} guessed the word: ${correctWord}!`,
-        },
-      ]);
-    };
-
-    socket.on("chat:message", handleChatMessage);
-    socket.on("round:end", handleRoundEnd);
-
-    return () => {
-      socket.off("chat:message", handleChatMessage);
-      socket.off("round:end", handleRoundEnd);
-    };
+    // No longer need handleRoundEnd, as the server sends a system message
+    socket.on('chat:message', handleChatMessage);
+    return () => socket.off('chat:message', handleChatMessage);
   }, [socket]);
 
-  // Clear messages for a new round (we'll listen for round:start)
   useEffect(() => {
     if (!socket) return;
     const handleRoundStart = () => setMessages([]);
-    socket.on("round:start", handleRoundStart);
-    return () => socket.off("round:start", handleRoundStart);
+    socket.on('round:start', handleRoundStart);
+    return () => socket.off('round:start', handleRoundStart);
   }, [socket]);
 
   const handleSendMessage = (e) => {
-    e.preventDefault(); // Prevent form from refreshing the page
+    e.preventDefault();
     if (guess.trim() && !isDrawer) {
       socket.emit("game:guess", guess);
-      setGuess(""); // Clear the input box
+      setGuess("");
     }
   };
 
   return (
     <div className="w-full h-96 bg-gray-700 p-4 rounded-lg flex flex-col">
-      <div className="flex-grow overflow-y-auto mb-4 pr-2">
-        {messages.map((msg, index) =>
-          msg.type === "announcement" ? (
-            <p
-              key={index}
-              className="my-2 text-center font-bold text-green-400"
-            >
-              {msg.text}
-            </p>
-          ) : (
-            <p key={index} className="my-1">
+      <div className="flex-grow overflow-y-auto mb-4 pr-2 space-y-2">
+        {messages.map((msg, index) => {
+          if (msg.type === 'system') {
+            return (
+              <p key={index} className="text-center text-sm italic text-yellow-300">
+                {msg.text}
+              </p>
+            );
+          }
+          // The old 'announcement' type is replaced by the 'system' type
+          return (
+            <p key={index}>
               <span className="font-semibold">{msg.name}: </span>
               <span>{msg.message}</span>
             </p>
-          )
-        )}
+          );
+        })}
         <div ref={messagesEndRef} />
       </div>
-      <form onSubmit={handleSendMessage}>
+      <form onSubmit={handleSendMessage} className="flex gap-2">
         <input
           type="text"
           value={guess}
           onChange={(e) => setGuess(e.target.value)}
-          placeholder={isDrawer ? "You're the drawer!" : "Type your guess..."}
-          disabled={isDrawer} // Disable the input for the drawer
-          className="w-full p-2 bg-gray-600 rounded-lg text-white disabled:bg-gray-800 disabled:cursor-not-allowed"
+          placeholder={isDrawer ? "You are drawing..." : "Type your guess..."}
+          disabled={isDrawer}
+          className="flex-1 px-3 py-2 bg-gray-600 text-white rounded border border-gray-500 focus:outline-none focus:border-blue-500 disabled:opacity-50"
         />
+        <button
+          type="submit"
+          disabled={isDrawer || !guess.trim()}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Send
+        </button>
       </form>
     </div>
   );
