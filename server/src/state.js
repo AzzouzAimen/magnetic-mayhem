@@ -1,7 +1,5 @@
 // src/state.js
 
-const drawingHistory = [];
-
 // --- NEW: Game Rooms State ---
 // We use a Map for better performance with frequent additions/deletions.
 const gameRooms = new Map();
@@ -9,7 +7,8 @@ const gameRooms = new Map();
 // Example of a room object:
 // 'ABCD': {
 //   roomId: 'ABCD',
-//   players: Map('socketId123': { id: 'socketId123', name: 'Player1' })
+//   players: Map('socketId123': { id: 'socketId123', name: 'Player1' }),
+//   drawingHistory: []
 // }
 
 const defaultWordList  = [
@@ -21,4 +20,4 @@ const getRandomWord = () => {
   return defaultWordList [Math.floor(Math.random() * defaultWordList .length)];
 };
 
-module.exports = { drawingHistory, gameRooms, defaultWordList };
+module.exports = { gameRooms, defaultWordList };

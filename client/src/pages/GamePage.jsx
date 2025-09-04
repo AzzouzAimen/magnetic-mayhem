@@ -25,6 +25,7 @@ const GamePage = () => {
 
   const [localEraseProgress, setLocalEraseProgress] = useState(null);
   const [finalScores, setFinalScores] = useState([]);
+  const [networkedEraseProgress, setNetworkedEraseProgress] = useState(null);
 
   useEffect(() => {
     if (!socket) return;
@@ -38,11 +39,14 @@ const GamePage = () => {
     };
     const handleRoundWord = (word) => setCurrentWord(word);
 
+    const handleBoardEraseProgress = ({ progress }) => {
+      // When a real-time erase progress event comes in, update the networked progress
+      setNetworkedEraseProgress(progress);
+    };
+
     const handleBoardErased = ({ progress }) => {
-      // When receiving a networked event, we just set the final state
-      // This will cause an instant clear on other clients' boards.
-      // We will add the animation for this later.
-      setLocalEraseProgress(progress);
+      // When a networked event comes in, trigger the animation
+      setNetworkedEraseProgress(progress);
     };
     const handleGameOver = (scores) => {
       console.log("Game over! Final scores:", scores);
@@ -61,6 +65,7 @@ const GamePage = () => {
     socket.on("lobby:update", handleLobbyUpdate);
     socket.on("round:start", handleRoundStart);
     socket.on("round:word", handleRoundWord);
+    socket.on("board:erase:progress", handleBoardEraseProgress);
     socket.on("board:erased", handleBoardErased);
     socket.on('game:over', handleGameOver);
     socket.on('game:lobby', handleReturnToLobby);
@@ -69,11 +74,27 @@ const GamePage = () => {
       socket.off("lobby:update", handleLobbyUpdate);
       socket.off("round:start", handleRoundStart);
       socket.off("round:word", handleRoundWord);
+      socket.off("board:erase:progress", handleBoardEraseProgress);
       socket.off("board:erased", handleBoardErased);
       socket.off('game:over', handleGameOver);
       socket.off('game:lobby', handleReturnToLobby);
     };
   }, [socket]);
+
+  // When an animation completes, we can reset the slider's visual state
+  useEffect(() => {
+    if (networkedEraseProgress !== null) {
+      const timer = setTimeout(() => setNetworkedEraseProgress(null), 600);
+      return () => clearTimeout(timer);
+    }
+  }, [networkedEraseProgress]);
+
+  // When a new round starts, reset the erase progress
+  useEffect(() => {
+    if(gameState === 'drawing') {
+      setLocalEraseProgress(0);
+    }
+  }, [gameState]);
 
   // When a stamp is selected, the tool is set.
   // To go back to drawing, the user simply draws again. We'll handle this in MagneticBoard.
@@ -82,6 +103,15 @@ const GamePage = () => {
     toast(`${toolName.charAt(0).toUpperCase() + toolName.slice(1)} selected!`, {
       duration: 1500,
     });
+  };
+
+  const handleEraseProgress = (progress) => {
+    // Set local progress for instant feedback
+    setLocalEraseProgress(progress);
+    // Broadcast real-time progress to other players
+    if (socket && roomId) {
+      socket.emit('board:erase:progress', { roomId, progress });
+    }
   };
 
   const handleEraseComplete = (progress) => {
@@ -116,10 +146,21 @@ const GamePage = () => {
       />
       <EraserSlider
         position={{ bottom: "5.1%", left: "13%", width: "74%", height: "4%" }}
-        onErase={setLocalEraseProgress}
+        onErase={handleEraseProgress}
         onEraseComplete={handleEraseComplete}
+        animateToProgress={networkedEraseProgress}
       />
     </>
+  );
+
+  // Define tools for non-drawers (only the eraser slider for animation feedback)
+  const nonDrawerTools = (
+    <EraserSlider
+      position={{ bottom: "5.1%", left: "13%", width: "74%", height: "4%" }}
+      onErase={null} // No interaction for non-drawers
+      onEraseComplete={null} // No interaction for non-drawers
+      animateToProgress={networkedEraseProgress}
+    />
   );
 
   if (gameState === "lobby") {
@@ -157,10 +198,10 @@ const GamePage = () => {
               isDrawer={isDrawer}
               activeTool={activeTool}
               onToolSwitch={setActiveTool}
-              eraseProgress={localEraseProgress}
+              eraseProgress={isDrawer ? localEraseProgress : networkedEraseProgress}
             />
           }
-          tools={isDrawer ? drawerTools : null}
+          tools={isDrawer ? drawerTools : nonDrawerTools}
         />
         <div className="w-80 flex-shrink-0">
           <ChatBox socket={socket} isDrawer={isDrawer} />

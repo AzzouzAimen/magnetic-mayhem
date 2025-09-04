@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect } from "react"; 
 
 const MagneticBoard = ({
   socket,
@@ -22,9 +22,45 @@ const MagneticBoard = ({
         const clearWidth = canvas.width * eraseProgress;
         // Erase from the right side back to the cleared width
         context.clearRect(0, 0, clearWidth, canvas.height);
+        // Redraw the hex pattern in the cleared area
+        const rect = canvas.getBoundingClientRect();
+        drawHexPattern(context, { width: rect.width, height: rect.height });
       }
     }
   }, [eraseProgress]);
+
+  const drawHexPattern = (context, canvas) => {
+    const hexWidth = 12; // Smaller hexagons
+    const hexHeight = 14; // Smaller hexagons
+    const hexRadius = hexWidth / 2;
+    
+    context.strokeStyle = "#9ca3af";
+    context.lineWidth = 0.3; // Thinner lines for smaller hexagons
+    
+    // Calculate how many hexagons we need to fill the canvas with extra margin
+    const cols = Math.ceil(canvas.width / hexWidth) + 2;
+    const rows = Math.ceil(canvas.height / (hexHeight * 0.75)) + 2;
+    
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        const x = col * hexWidth + (row % 2) * hexRadius;
+        const y = row * hexHeight * 0.75;
+        
+        // Only draw if the hexagon is within or slightly outside the canvas bounds
+        if (x > -hexWidth && x < canvas.width + hexWidth && y > -hexHeight && y < canvas.height + hexHeight) {
+          context.beginPath();
+          context.moveTo(x + hexRadius, y);
+          context.lineTo(x + hexWidth, y + hexHeight * 0.25);
+          context.lineTo(x + hexWidth, y + hexHeight * 0.75);
+          context.lineTo(x + hexRadius, y + hexHeight);
+          context.lineTo(x, y + hexHeight * 0.75);
+          context.lineTo(x, y + hexHeight * 0.25);
+          context.closePath();
+          context.stroke();
+        }
+      }
+    }
+  };
 
   const resizeCanvas = () => {
     const canvas = canvasRef.current;
@@ -35,10 +71,13 @@ const MagneticBoard = ({
     const context = canvas.getContext("2d");
     context.scale(devicePixelRatio, devicePixelRatio);
     context.lineCap = "round";
-    context.strokeStyle = "black";
-    context.fillStyle = "black";
-    context.lineWidth = 10;
+    context.strokeStyle = "#4a4a4a"; // Dark gray
+    context.fillStyle = "#4a4a4a"; // Dark gray
+    context.lineWidth = 5;
     contextRef.current = context;
+    
+    // Draw the hex pattern background
+    drawHexPattern(context, { width: rect.width, height: rect.height });
   };
 
   useEffect(() => {
@@ -55,6 +94,10 @@ const MagneticBoard = ({
     if (!context) return;
     const x = pos.x;
     const y = pos.y;
+    
+    // Set dark gray color for stamps
+    context.fillStyle = "#4a4a4a";
+    
     context.beginPath();
     if (shape === "square") {
       context.rect(x - size / 2, y - size / 2, size, size);
@@ -72,26 +115,64 @@ const MagneticBoard = ({
   const drawLine = (start, end) => {
     const context = contextRef.current;
     if (!context) return;
-    context.beginPath();
-    context.moveTo(start.x, start.y);
-    context.lineTo(end.x, end.y);
-    context.stroke();
-    context.closePath();
+    
+    // Set drawing properties for brush effect
+    context.strokeStyle = "#4a4a4a"; // Dark gray instead of black
+    context.lineWidth = 5;
+    context.lineCap = "round";
+    context.lineJoin = "round";
+    
+    // Create brush effect with multiple overlapping strokes
+    const distance = Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2));
+    const steps = Math.max(1, Math.floor(distance / 2)); // More steps for smoother brush effect
+    
+    for (let i = 0; i < steps; i++) {
+      const t = i / steps;
+      const x = start.x + (end.x - start.x) * t;
+      const y = start.y + (end.y - start.y) * t;
+      
+      // Add slight randomness for brush texture
+      const offsetX = (Math.random() - 0.5) * 1.5;
+      const offsetY = (Math.random() - 0.5) * 1.5;
+      const brushSize = 5 + (Math.random() - 0.5) * 2; // Vary brush size slightly
+      
+      context.lineWidth = brushSize;
+      context.globalAlpha = 0.7 + Math.random() * 0.3; // Vary opacity for texture
+      
+      context.beginPath();
+      context.arc(x + offsetX, y + offsetY, brushSize / 2, 0, 2 * Math.PI);
+      context.fill();
+    }
+    
+    // Reset alpha for other operations
+    context.globalAlpha = 1.0;
   };
 
   useEffect(() => {
     if (!socket) return;
+    console.log(`[MagneticBoard] Requesting history, isDrawer: ${isDrawer}`);
     socket.emit("history:request");
-    const handleDrawing = (data) => drawLine(data.start, data.end);
-    const handlePlaceStamp = (data) => drawShape(data.shape, data.position);
+    const handleDrawing = (data) => {
+      console.log(`[MagneticBoard] Received drawing event, isDrawer: ${isDrawer}`, data);
+      drawLine(data.start, data.end);
+    };
+    const handlePlaceStamp = (data) => {
+      console.log(`[MagneticBoard] Received stamp event, isDrawer: ${isDrawer}`, data);
+      drawShape(data.shape, data.position);
+    };
     const handleClear = () => {
+      console.log(`[MagneticBoard] Received clear event, isDrawer: ${isDrawer}`);
       const context = contextRef.current;
       const canvas = canvasRef.current;
       if (context && canvas) {
         context.clearRect(0, 0, canvas.width, canvas.height);
+        // Redraw the hex pattern after clearing
+        const rect = canvas.getBoundingClientRect();
+        drawHexPattern(context, { width: rect.width, height: rect.height });
       }
     };
     const handleDrawHistory = (history) => {
+      console.log(`[MagneticBoard] Received history, isDrawer: ${isDrawer}, history length: ${history.length}`, history);
       history.forEach((item) => {
         if (item.type === "drawing") {
           drawLine(item.start, item.end);
@@ -139,6 +220,7 @@ const MagneticBoard = ({
     const data = { start: lastPoint.current, end: { x: offsetX, y: offsetY } };
     drawLine(data.start, data.end);
     if (socket) {
+      console.log(`[MagneticBoard] Emitting drawing event:`, data);
       socket.emit("draw:drawing", data);
     }
     lastPoint.current = data.end;

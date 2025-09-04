@@ -1,9 +1,18 @@
 import React, { useState, useRef, useEffect } from "react";
 
-const EraserSlider = ({ position, onErase, onEraseComplete }) => {
+const EraserSlider = ({ position, onErase, onEraseComplete, animateToProgress  }) => {
   const trackRef = useRef(null);
   const handleRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
+
+// handle networked real-time updates
+useEffect(() => {
+  if (animateToProgress !== null && handleRef.current) {
+    // For real-time updates, move instantly without transition
+    handleRef.current.style.transition = '';
+    handleRef.current.style.left = `${animateToProgress * 100}%`;
+  }
+}, [animateToProgress]);
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -62,6 +71,13 @@ const EraserSlider = ({ position, onErase, onEraseComplete }) => {
 
   const handleMouseDown = (e) => {
     e.preventDefault();
+    // Don't allow dragging if onErase is null (non-drawer mode)
+    if (!onErase) return;
+    
+    if (handleRef.current) {
+      // Remove any existing transition to ensure drag is snappy
+      handleRef.current.style.transition = '';
+    }
     setIsDragging(true);
   };
 
@@ -75,7 +91,9 @@ const EraserSlider = ({ position, onErase, onEraseComplete }) => {
         ref={handleRef}
         onMouseDown={handleMouseDown}
         //className="absolute top-1/2 -translate-y-1/2 w-10 h-8 bg-stone-200 rounded-md shadow-md cursor-grab active:cursor-grabbing"
-        className="absolute top-1/2 -translate-y-1/2 bg-stone-200 rounded-md shadow-md cursor-grab active:cursor-grabbing"
+        className={`absolute top-1/2 -translate-y-1/2 bg-stone-200 rounded-md shadow-md ${
+          onErase ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'
+        }`}
         style={{
           width: '15%',
           height: '70%',

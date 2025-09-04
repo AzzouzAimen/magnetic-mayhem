@@ -32,6 +32,7 @@ const registerRoomHandlers = (io, socket) => {
     gameRooms.set(roomId, {
       roomId,
       players: new Map([[socket.id, newPlayer]]),
+      drawingHistory: [],
     });
 
     socket.join(roomId);
@@ -140,6 +141,9 @@ const registerRoomHandlers = (io, socket) => {
     room.gameState = "drawing";
     room.currentDrawerId = nextDrawer.id;
     room.currentWord = word;
+    
+    // Clear the drawing history for the new round
+    room.drawingHistory.length = 0;
     room.timer = room.roundTime;
     room.currentRound += 1; // Increment the round counter
 
