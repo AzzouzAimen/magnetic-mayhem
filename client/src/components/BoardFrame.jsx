@@ -9,8 +9,8 @@ const BoardFrame = ({ canvas, tools }) => {
     <div
       className="relative"
       style={{
-        width: '55vw', // Use almost full viewport width
-        maxWidth: '1400px', // Set a maximum size for very large screens
+        width: '60vw',
+        maxWidth: '1200px',
         aspectRatio: '1022 / 740', // Match the actual SVG dimensions
         // backgroundImage: `url(${frameSvg})`,
         // backgroundSize: 'contain',

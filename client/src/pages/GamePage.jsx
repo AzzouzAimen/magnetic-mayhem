@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useOutletContext, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
 import MagneticBoard from "../components/MagneticBoard";
 import Lobby from "../components/Lobby";
-import PlayerList from "../components/PlayerList";
 import ChatBox from "../components/ChatBox";
-import Timer from "../components/Timer";
+import StatusDisplay from "../components/StatusDisplay";
 import BoardFrame from "../components/BoardFrame";
 import Stamp from "../components/Stamp";
 import EraserSlider from "../components/EraserSlider";
@@ -26,6 +25,7 @@ const GamePage = () => {
   const [localEraseProgress, setLocalEraseProgress] = useState(null);
   const [finalScores, setFinalScores] = useState([]);
   const [networkedEraseProgress, setNetworkedEraseProgress] = useState(null);
+  const boardWrapperRef = useRef(null);
 
   useEffect(() => {
     if (!socket) return;
@@ -95,6 +95,8 @@ const GamePage = () => {
       setLocalEraseProgress(0);
     }
   }, [gameState]);
+
+  // (Removed dynamic ChatBox height observer)
 
   // When a stamp is selected, the tool is set.
   // To go back to drawing, the user simply draws again. We'll handle this in MagneticBoard.
@@ -168,42 +170,46 @@ const GamePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-800 flex flex-col items-center justify-start p-4 text-white">
+    <div className="relative min-h-screen w-full flex flex-col items-center text-white pt-6 px-2 overflow-x-hidden">
+      {/* Atmospheric Background - matching SoloPage */}
+      <div className="area"></div>
+
       {/* The GameOver component will render as an overlay */}
       {gameState === 'results' && (
         <GameOver scores={finalScores} socket={socket} isHost={isHost} roomId={roomId} />
       )}
       
-      {/* The main game UI is still here, and will be visible under the overlay */}
-      <div className="w-full max-w-6xl mb-4">
-        <div className="text-center mb-2">
-          {isDrawer ? (
-            <h2 className="text-3xl font-bold">
-              Your word is:{" "}
-              <span className="text-yellow-400">{currentWord}</span>
-            </h2>
-          ) : (
-            <h2 className="text-3xl">Guess the drawing!</h2>
-          )}
+      {/* The main game UI - Sidebar + Board + Chat */}
+      <div className="relative z-10 w-full max-w-7xl mx-auto flex items-center justify-center gap-6 p-2">
+        {/* Status Display - Left vertical sidebar */}
+        <div className="flex-shrink-0">
+          <StatusDisplay 
+            socket={socket} 
+            isDrawer={isDrawer} 
+            currentWord={currentWord}
+            players={players}
+            drawerId={currentDrawerId}
+          />
         </div>
-        <Timer socket={socket} />
-      </div>
 
-      <div className="w-full max-w-6xl flex items-center justify-center gap-4">
-        <PlayerList players={players} drawerId={currentDrawerId} />
-        <BoardFrame
-          canvas={
-            <MagneticBoard
-              socket={socket}
-              isDrawer={isDrawer}
-              activeTool={activeTool}
-              onToolSwitch={setActiveTool}
-              eraseProgress={isDrawer ? localEraseProgress : networkedEraseProgress}
-            />
-          }
-          tools={isDrawer ? drawerTools : nonDrawerTools}
-        />
-        <div className="w-80 flex-shrink-0">
+        {/* The Magnetic Drawing Board - Center hero element */}
+        <div className="flex-shrink-0" ref={boardWrapperRef}>
+          <BoardFrame
+            canvas={
+              <MagneticBoard
+                socket={socket}
+                isDrawer={isDrawer}
+                activeTool={activeTool}
+                onToolSwitch={setActiveTool}
+                eraseProgress={isDrawer ? localEraseProgress : networkedEraseProgress}
+              />
+            }
+            tools={isDrawer ? drawerTools : nonDrawerTools}
+          />
+        </div>
+
+        {/* Chat Box - Right */}
+        <div className="flex-shrink-0">
           <ChatBox socket={socket} isDrawer={isDrawer} />
         </div>
       </div>

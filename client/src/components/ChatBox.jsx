@@ -35,43 +35,57 @@ const ChatBox = ({ socket, isDrawer }) => {
   };
 
   return (
-    <div className="w-full h-96 bg-gray-700 p-4 rounded-lg flex flex-col">
-      <div className="flex-grow overflow-y-auto mb-4 pr-2 space-y-2">
-        {messages.map((msg, index) => {
-          if (msg.type === 'system') {
+    <div className="relative w-68" style={{ height: '75vh' }}>
+      {/* Gradient border glow */}
+      <div className="pointer-events-none absolute -inset-[1.5px] rounded-2xl bg-gradient-to-br from-emerald-300/70 via-green-500/60 to-emerald-700/60 opacity-70 blur-[1px]"></div>
+
+      {/* Glass container */}
+      <div className="relative h-full min-h-0 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-[0_8px_30px_rgba(0,0,0,0.30)] p-3 flex flex-col overflow-hidden">
+        {/* Header */}
+        <h2 className="text-center text-emerald-100 font-normal text-sm mb-2 tracking-wide">
+          Chat
+        </h2>
+
+        {/* Messages */}
+        <div className="flex-grow overflow-y-auto mb-2 pr-1 space-y-1">
+          {messages.map((msg, index) => {
+            if (msg.type === 'system') {
+              return (
+                <p key={index} className="text-center text-[12px] italic text-emerald-100/90 bg-white/10 border border-white/15 px-2 py-1 rounded">
+                  {msg.text}
+                </p>
+              );
+            }
+            // The old 'announcement' type is replaced by the 'system' type
             return (
-              <p key={index} className="text-center text-sm italic text-yellow-300">
-                {msg.text}
+              <p key={index} className="text-[13px] text-white/90">
+                <span className="text-emerald-200 font-medium">{msg.name}: </span>
+                <span className="align-middle">{msg.message}</span>
               </p>
             );
-          }
-          // The old 'announcement' type is replaced by the 'system' type
-          return (
-            <p key={index}>
-              <span className="font-semibold">{msg.name}: </span>
-              <span>{msg.message}</span>
-            </p>
-          );
-        })}
-        <div ref={messagesEndRef} />
+          })}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input Form */}
+        <form onSubmit={handleSendMessage} className="flex flex-col gap-1">
+          <input
+            type="text"
+            value={guess}
+            onChange={(e) => setGuess(e.target.value)}
+            placeholder={isDrawer ? "You are drawing..." : "Type your guess..."}
+            disabled={isDrawer}
+            className="w-full px-2 py-1 rounded-md bg-white/10 border border-white/20 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-400/40 disabled:opacity-60 text-sm"
+          />
+          <button
+            type="submit"
+            disabled={isDrawer || !guess.trim()}
+            className="w-full h-8 rounded-md bg-emerald-500/90 hover:bg-emerald-400 active:bg-emerald-500 text-white text-sm font-semibold tracking-wide transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer shadow-[0_2px_0_rgba(0,0,0,0.25)]"
+          >
+            Send
+          </button>
+        </form>
       </div>
-      <form onSubmit={handleSendMessage} className="flex gap-2">
-        <input
-          type="text"
-          value={guess}
-          onChange={(e) => setGuess(e.target.value)}
-          placeholder={isDrawer ? "You are drawing..." : "Type your guess..."}
-          disabled={isDrawer}
-          className="flex-1 px-3 py-2 bg-gray-600 text-white rounded border border-gray-500 focus:outline-none focus:border-blue-500 disabled:opacity-50"
-        />
-        <button
-          type="submit"
-          disabled={isDrawer || !guess.trim()}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Send
-        </button>
-      </form>
     </div>
   );
 };
