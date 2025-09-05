@@ -1,0 +1,146 @@
+/* This is the main button container. It defines the size and acts as the anchor. */
+.retroBtn {
+    display: inline-block;
+    position: relative;
+    border-radius: 3px;
+    -webkit-tap-highlight-color: transparent;
+    cursor: pointer;
+    background: var(--dark-color);
+    border: none;
+    outline: none;
+    padding: 0;
+    margin: 0;
+    text-transform: uppercase;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 600;
+    font-size: 1.125rem;
+    letter-spacing: 0.05em;
+    user-select: none;
+    transition: opacity 0.1s ease-out;
+    z-index: 5;
+    
+    /* Default size - make it larger */
+    width: 100%;
+    height: 46px;
+    min-width: 240px;
+  }
+  
+  /* This is the colorful top surface of the button */
+  .topLayer {
+    display: block;
+    position: relative;
+    width: 100%;
+    height: calc(100% - 3px);
+    margin-top: -3px;
+    padding: 0 1rem;
+    border-radius: 3px;
+    
+    /* The bright color of the button surface */
+    background-color: var(--main-color);
+    color: #ebf1f8;
+    
+    /* Flexbox for centering content */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    /* The 3D effect - this creates the "pressed" look */
+    transform: translateY(-3px);
+    transition: transform 0.185s ease-out, background 0.185s ease-out;
+    z-index: 3;
+    overflow: hidden;
+  }
+  
+  /* Removed ::before overlay. Dark side is now the container background. */
+  
+  /* The text content */
+  .text {
+    position: relative;
+    z-index: 10;
+    color: #ebf1f8;
+    font-size: 0.8em;
+    letter-spacing: 0.06em;
+    transition: opacity 0.3s ease-out;
+    opacity: 1;
+  }
+  
+  .text::before {
+    content: attr(label);
+    display: block;
+  }
+  
+  /* Hover effect - button looks more "pressed" */
+  .retroBtn:hover .topLayer {
+    transform: translateY(-1px);
+  }
+  
+  /* Active state - button is fully pressed */
+  .retroBtn:active .topLayer {
+    transform: translateY(2px);
+  }
+  
+  /* --- COLOR VARIANTS --- */
+  /* We define the variables here. The rest of the CSS just uses them. */
+  .green {
+    --main-color: #10b981;    /* green-500 */
+    --dark-color: #047857;   /* green-700 */
+  }
+  
+  .blue {
+    --main-color: #3b82f6;    /* blue-500 */
+    --dark-color: #1d4ed8;   /* blue-700 */
+  }
+  
+  .purple {
+    --main-color: #9333ea;    /* purple-600 */
+    --dark-color: #7e22ce;   /* purple-700 */
+  }
+
+  .red {
+    --main-color: #ef4444;    /* red-500 */
+    --dark-color: #b91c1c;    /* red-700 */
+  }
+
+  .yellow {
+    --main-color: #eab308;    /* yellow-500 */
+    --dark-color: #ca8a04;   /* yellow-700 */
+  }
+  /* --- TILT EFFECT --- */
+  /* Left tilt - skews the button to the left */
+  .tiltLeft .topLayer {
+    transform: skewY(-1deg) translateY(-3px);
+  }
+  
+  .tiltLeft:hover .topLayer {
+    transform: skewY(-1deg) translateY(-1px);
+  }
+  
+  .tiltLeft:active .topLayer {
+    transform: skewY(-1deg) translateY(2px);
+  }
+  
+  /* Right tilt - skews the button to the right */
+  .tiltRight .topLayer {
+    transform: skewY(1deg) translateY(-3px);
+  }
+  
+  .tiltRight:hover .topLayer {
+    transform: skewY(1deg) translateY(-1px);
+  }
+  
+  .tiltRight:active .topLayer {
+    transform: skewY(1deg) translateY(2px);
+  }
+  
+  /* Center tilt - normal pressed state */
+  .tiltCenter .topLayer {
+    transform: translateY(1px);
+  }
+  
+  .tiltCenter:hover .topLayer {
+    transform: translateY(-1px);
+  }
+  
+  .tiltCenter:active .topLayer {
+    transform: translateY(2px);
+  }

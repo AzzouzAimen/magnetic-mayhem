@@ -21,3 +21,149 @@
     /* The numbers '8 30' are the X and Y coordinates of the cursor's "tip" */
     cursor: url('/pen-cursor.png') 0 48, crosshair;
   }
+
+  /* === ANIMATED BACKGROUND === */
+.area {
+  background: #1f2937; /* slate-800 */
+  /* You could add a gradient here if you wanted */
+  /* background: -webkit-linear-gradient(to left, #8f94fb, #4e54c8); */
+  width: 100%;
+  height: 100vh;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -1; /* Place it behind everything */
+}
+
+.circles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.circles li {
+  position: absolute;
+  display: block;
+  list-style: none;
+  width: 20px;
+  height: 20px;
+  animation: animate 25s linear infinite;
+  bottom: -150px;
+  background-color: rgba(255, 255, 255, 0.1); /* Default color */
+}
+
+.circles li:nth-child(1) {
+  left: 25%;
+  width: 80px;
+  height: 80px;
+  animation-delay: 0s;
+  background-color: rgba(168, 85, 247, 0.3); /* Purple */
+}
+
+.circles li:nth-child(2) {
+  left: 10%;
+  width: 20px;
+  height: 20px;
+  animation-delay: 2s;
+  animation-duration: 12s;
+  background-color: rgba(239, 68, 68, 0.3); /* Red */
+}
+
+.circles li:nth-child(3) {
+  left: 70%;
+  width: 20px;
+  height: 20px;
+  animation-delay: 4s;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%); /* Triangle */
+  background-color: rgba(163, 230, 53, 0.3); /* Lime */
+}
+
+.circles li:nth-child(4) {
+  left: 40%;
+  width: 60px;
+  height: 60px;
+  animation-delay: 0s;
+  animation-duration: 18s;
+  border-radius: 50%; /* Circle */
+  background-color: rgba(59, 130, 246, 0.3); /* Blue */
+}
+
+.circles li:nth-child(5) {
+  left: 65%;
+  width: 20px;
+  height: 20px;
+  animation-delay: 0s;
+  background-color: rgba(245, 158, 11, 0.3); /* Amber */
+}
+
+.circles li:nth-child(6) {
+  left: 75%;
+  width: 110px;
+  height: 110px;
+  animation-delay: 3s;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%); /* Triangle */
+  background-color: rgba(168, 85, 247, 0.3); /* Purple */
+}
+
+.circles li:nth-child(7) {
+  left: 35%;
+  width: 150px;
+  height: 150px;
+  animation-delay: 7s;
+  border-radius: 50%; /* Circle */
+  background-color: rgba(239, 68, 68, 0.3); /* Red */
+}
+
+.circles li:nth-child(8) {
+  left: 50%;
+  width: 25px;
+  height: 25px;
+  animation-delay: 15s;
+  animation-duration: 45s;
+  background-color: rgba(59, 130, 246, 0.3); /* Blue */
+}
+
+.circles li:nth-child(9) {
+  left: 20%;
+  width: 15px;
+  height: 15px;
+  animation-delay: 2s;
+  animation-duration: 35s;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%); /* Triangle */
+  background-color: rgba(163, 230, 53, 0.3); /* Lime */
+}
+
+.circles li:nth-child(10) {
+  left: 85%;
+  width: 150px;
+  height: 150px;
+  animation-delay: 0s;
+  animation-duration: 11s;
+  border-radius: 50%; /* Circle */
+  background-color: rgba(245, 158, 11, 0.3); /* Amber */
+}
+
+@keyframes animate {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-1000px) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+/* === RETRO BUTTON TILT EFFECT === */
+.retro-btn.tilt-left .relative {
+  transform: skewY(1.5deg);
+}
+.retro-btn.tilt-right .relative {
+  transform: skewY(-1.5deg);
+}
+.retro-btn.tilt-center .relative {
+  transform: skewY(0deg);
+}
