@@ -23,7 +23,7 @@ const registerRoomHandlers = (io, socket) => {
   };
 
   const createGame = (nickname) => {
-    const roomId = nanoid(4);
+    const roomId = nanoid(4).toUpperCase();
     console.log(`[Create Game] Generated room ID: "${roomId}"`);
     const newPlayer = { id: socket.id, name: nickname };
     const players = [newPlayer]; // The initial player list is just the creator
@@ -41,11 +41,12 @@ const registerRoomHandlers = (io, socket) => {
   };
 
   const joinGame = ({ roomId, nickname }) => {
+    const normalizedRoomId = roomId.toUpperCase();
     console.log(
-      `[Join Attempt] Room ID: "${roomId}", Available rooms:`,
+      `[Join Attempt] Room ID: "${roomId}" -> "${normalizedRoomId}", Available rooms:`,
       Array.from(gameRooms.keys())
     );
-    const room = gameRooms.get(roomId);
+    const room = gameRooms.get(normalizedRoomId);
     if (!room || room.players.size >= 8) {
       console.log(
         `[Join Failed] Room not found or full. Room:`,
@@ -57,15 +58,15 @@ const registerRoomHandlers = (io, socket) => {
     }
     const newPlayer = { id: socket.id, name: nickname };
     room.players.set(socket.id, newPlayer);
-    socket.join(roomId);
-    io.to(roomId).emit('chat:message', {
+    socket.join(normalizedRoomId);
+    io.to(normalizedRoomId).emit('chat:message', {
       type: 'system',
       text: `${nickname} has joined the game!`
     });
     const players = Array.from(room.players.values()); // Get the updated list of players
     // Send the confirmation and the FULL player list back to the joiner
-    socket.emit("game:joined", { roomId, players });
-    socket.broadcast.to(roomId).emit("lobby:update", players);
+    socket.emit("game:joined", { roomId: normalizedRoomId, players });
+    socket.broadcast.to(normalizedRoomId).emit("lobby:update", players);
   };
 
   const leaveGame = () => {

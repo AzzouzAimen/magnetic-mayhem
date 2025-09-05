@@ -144,3 +144,22 @@
   .tiltCenter:active .topLayer {
     transform: translateY(2px);
   }
+
+  /* --- DISABLED STATE --- */
+  .retroBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .retroBtn:disabled .topLayer {
+    transform: translateY(2px) !important;
+    background-color: #6b7280 !important; /* gray-500 */
+  }
+
+  .retroBtn:disabled:hover .topLayer {
+    transform: translateY(2px) !important;
+  }
+
+  .retroBtn:disabled:active .topLayer {
+    transform: translateY(2px) !important;
+  }
