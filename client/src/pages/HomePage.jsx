@@ -77,13 +77,15 @@ const HomePage = () => {
             <img src={logo} alt="Magnetic Mayhem Logo" className="w-full max-w-xs md:max-w-md" />
         </div>
 
-        <input
-          type="text"
-          placeholder="Enter your nickname"
-          value={nickname}
-          onChange={(e) => setNickname(e.target.value)}
-          className="w-full px-4 py-3 mb-6 text-center text-xl bg-white text-slate-800 rounded-lg border-2 border-gray-300 focus:border-green-600 focus:outline-none transition"
-        />
+        <div className="w-full">
+          <input
+            type="text"
+            placeholder="Enter your nickname"
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
+            className="nameplate-input"
+          />
+        </div>
 
         <div className="w-full flex flex-col gap-4">
           <RetroButton color="red" onClick={handleCreateGame}>Create Game</RetroButton>

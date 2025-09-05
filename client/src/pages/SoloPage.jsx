@@ -31,7 +31,7 @@ const SoloPage = () => {
       />
       <Stamp 
         shape="triangle" 
-        color="#a3e635"
+        color="#eab308"
         position={{ top: '45.2%', left: '12%', width: '7.2%', height: '9%' }}
         onSelect={() => handleToolSelect('triangle')}
       />
@@ -50,8 +50,11 @@ const SoloPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-800 flex flex-col items-center text-white p-4">
-      <div className="absolute top-4 left-4">
+    <div className="relative min-h-screen w-full flex flex-col items-center text-white p-4 overflow-hidden">
+      {/* Atmospheric Background */}
+      <div className="area"></div>
+
+      <div className="absolute top-4 left-4 z-10">
         <Link
           to="/"
           className="px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition"
@@ -59,7 +62,7 @@ const SoloPage = () => {
           &larr; Back to Menu
         </Link>
       </div>
-      <div className="flex-1 flex items-center justify-center">
+      <div className="flex-1 flex items-center justify-center relative z-10">
         <BoardFrame
           canvas={<MagneticBoard socket={null} isDrawer={true} activeTool={activeTool} onToolSwitch={setActiveTool} eraseProgress={localEraseProgress} />}
           tools={soloTools}

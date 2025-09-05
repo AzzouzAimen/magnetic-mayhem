@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One:wght@400&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -24,9 +25,7 @@
 
   /* === ANIMATED BACKGROUND === */
 .area {
-  background: #1f2937; /* slate-800 */
-  /* You could add a gradient here if you wanted */
-  /* background: -webkit-linear-gradient(to left, #8f94fb, #4e54c8); */
+  background: radial-gradient(ellipse at center, #2d1b69 0%, #1e1b4b 30%, #1f2937 70%, #111827 100%);
   width: 100%;
   height: 100vh;
   position: absolute;
@@ -52,7 +51,7 @@
   height: 20px;
   animation: animate 25s linear infinite;
   bottom: -150px;
-  background-color: rgba(255, 255, 255, 0.1); /* Default color */
+  background-color: rgba(255, 255, 255, 0.6); /* Default color */
 }
 
 .circles li:nth-child(1) {
@@ -60,7 +59,8 @@
   width: 80px;
   height: 80px;
   animation-delay: 0s;
-  background-color: rgba(168, 85, 247, 0.3); /* Purple */
+  border-radius: 50%; /* Circle */
+  background-color: rgba(168, 85, 247, 0.6); /* Purple */
 }
 
 .circles li:nth-child(2) {
@@ -69,7 +69,8 @@
   height: 20px;
   animation-delay: 2s;
   animation-duration: 12s;
-  background-color: rgba(239, 68, 68, 0.3); /* Red */
+  border-radius: 4px; /* Soft square */
+  background-color: rgba(239, 68, 68, 0.6); /* Red */
 }
 
 .circles li:nth-child(3) {
@@ -77,8 +78,9 @@
   width: 20px;
   height: 20px;
   animation-delay: 4s;
+  border-radius: 10px; /* Soft triangle */
   clip-path: polygon(50% 0%, 0% 100%, 100% 100%); /* Triangle */
-  background-color: rgba(163, 230, 53, 0.3); /* Lime */
+  background-color: rgba(163, 230, 53, 0.6); /* Lime */
 }
 
 .circles li:nth-child(4) {
@@ -88,7 +90,7 @@
   animation-delay: 0s;
   animation-duration: 18s;
   border-radius: 50%; /* Circle */
-  background-color: rgba(59, 130, 246, 0.3); /* Blue */
+  background-color: rgba(59, 130, 246, 0.6); /* Blue */
 }
 
 .circles li:nth-child(5) {
@@ -96,7 +98,8 @@
   width: 20px;
   height: 20px;
   animation-delay: 0s;
-  background-color: rgba(245, 158, 11, 0.3); /* Amber */
+  border-radius: 4px; /* Soft square */
+  background-color: rgba(245, 158, 11, 0.6); /* Amber */
 }
 
 .circles li:nth-child(6) {
@@ -104,8 +107,9 @@
   width: 110px;
   height: 110px;
   animation-delay: 3s;
+  border-radius: 10px; /* Soft triangle */
   clip-path: polygon(50% 0%, 0% 100%, 100% 100%); /* Triangle */
-  background-color: rgba(168, 85, 247, 0.3); /* Purple */
+  background-color: rgba(168, 85, 247, 0.6); /* Purple */
 }
 
 .circles li:nth-child(7) {
@@ -114,7 +118,7 @@
   height: 150px;
   animation-delay: 7s;
   border-radius: 50%; /* Circle */
-  background-color: rgba(239, 68, 68, 0.3); /* Red */
+  background-color: rgba(239, 68, 68, 0.6); /* Red */
 }
 
 .circles li:nth-child(8) {
@@ -123,7 +127,8 @@
   height: 25px;
   animation-delay: 15s;
   animation-duration: 45s;
-  background-color: rgba(59, 130, 246, 0.3); /* Blue */
+  border-radius: 6px; /* Soft square */
+  background-color: rgba(59, 130, 246, 0.6); /* Blue */
 }
 
 .circles li:nth-child(9) {
@@ -132,8 +137,9 @@
   height: 15px;
   animation-delay: 2s;
   animation-duration: 35s;
+  border-radius: 10px; /* Soft triangle */
   clip-path: polygon(50% 0%, 0% 100%, 100% 100%); /* Triangle */
-  background-color: rgba(163, 230, 53, 0.3); /* Lime */
+  background-color: rgba(163, 230, 53, 0.6); /* Lime */
 }
 
 .circles li:nth-child(10) {
@@ -143,7 +149,7 @@
   animation-delay: 0s;
   animation-duration: 11s;
   border-radius: 50%; /* Circle */
-  background-color: rgba(245, 158, 11, 0.3); /* Amber */
+  background-color: rgba(245, 158, 11, 0.6); /* Amber */
 }
 
 @keyframes animate {
@@ -157,6 +163,86 @@
   }
 }
 
+/* === DUST MOTES EFFECT === */
+.dust-motes {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.motes {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.motes li {
+  position: absolute;
+  display: block;
+  list-style: none;
+  width: 2px;
+  height: 2px;
+  background-color: rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+  animation: float 60s linear infinite;
+  bottom: -10px;
+}
+
+/* Individual dust mote positioning and timing */
+.motes li:nth-child(1) { left: 10%; animation-delay: 0s; animation-duration: 45s; }
+.motes li:nth-child(2) { left: 20%; animation-delay: 3s; animation-duration: 52s; }
+.motes li:nth-child(3) { left: 30%; animation-delay: 6s; animation-duration: 48s; }
+.motes li:nth-child(4) { left: 40%; animation-delay: 9s; animation-duration: 55s; }
+.motes li:nth-child(5) { left: 50%; animation-delay: 12s; animation-duration: 50s; }
+.motes li:nth-child(6) { left: 60%; animation-delay: 15s; animation-duration: 47s; }
+.motes li:nth-child(7) { left: 70%; animation-delay: 18s; animation-duration: 53s; }
+.motes li:nth-child(8) { left: 80%; animation-delay: 21s; animation-duration: 49s; }
+.motes li:nth-child(9) { left: 90%; animation-delay: 24s; animation-duration: 51s; }
+.motes li:nth-child(10) { left: 15%; animation-delay: 27s; animation-duration: 46s; }
+.motes li:nth-child(11) { left: 25%; animation-delay: 30s; animation-duration: 54s; }
+.motes li:nth-child(12) { left: 35%; animation-delay: 33s; animation-duration: 48s; }
+.motes li:nth-child(13) { left: 45%; animation-delay: 36s; animation-duration: 52s; }
+.motes li:nth-child(14) { left: 55%; animation-delay: 39s; animation-duration: 49s; }
+.motes li:nth-child(15) { left: 65%; animation-delay: 42s; animation-duration: 47s; }
+.motes li:nth-child(16) { left: 75%; animation-delay: 45s; animation-duration: 53s; }
+.motes li:nth-child(17) { left: 85%; animation-delay: 48s; animation-duration: 50s; }
+.motes li:nth-child(18) { left: 5%; animation-delay: 51s; animation-duration: 55s; }
+.motes li:nth-child(19) { left: 95%; animation-delay: 54s; animation-duration: 46s; }
+.motes li:nth-child(20) { left: 12%; animation-delay: 57s; animation-duration: 51s; }
+.motes li:nth-child(21) { left: 22%; animation-delay: 60s; animation-duration: 48s; }
+.motes li:nth-child(22) { left: 32%; animation-delay: 63s; animation-duration: 52s; }
+.motes li:nth-child(23) { left: 42%; animation-delay: 66s; animation-duration: 49s; }
+.motes li:nth-child(24) { left: 52%; animation-delay: 69s; animation-duration: 47s; }
+.motes li:nth-child(25) { left: 62%; animation-delay: 72s; animation-duration: 53s; }
+.motes li:nth-child(26) { left: 72%; animation-delay: 75s; animation-duration: 50s; }
+.motes li:nth-child(27) { left: 82%; animation-delay: 78s; animation-duration: 46s; }
+.motes li:nth-child(28) { left: 92%; animation-delay: 81s; animation-duration: 54s; }
+.motes li:nth-child(29) { left: 8%; animation-delay: 84s; animation-duration: 48s; }
+.motes li:nth-child(30) { left: 18%; animation-delay: 87s; animation-duration: 51s; }
+
+@keyframes float {
+  0% {
+    transform: translateY(0) translateX(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.08;
+  }
+  90% {
+    opacity: 0.08;
+  }
+  100% {
+    transform: translateY(-100vh) translateX(20px) rotate(360deg);
+    opacity: 0;
+  }
+}
+
 /* === RETRO BUTTON TILT EFFECT === */
 .retro-btn.tilt-left .relative {
   transform: skewY(1.5deg);
@@ -166,4 +252,96 @@
 }
 .retro-btn.tilt-center .relative {
   transform: skewY(0deg);
+}
+
+/* === ENGRAVED NAMEPLATE === */
+.nameplate-label {
+  font-family: "Fredoka One", cursive;
+  font-size: 1.1rem;
+  color: #15803d; /* green-700 - primary dark green */
+  margin-bottom: 0.5rem;
+  text-align: center;
+  letter-spacing: 0.05em;
+}
+
+.nameplate-input {
+  width: 100%;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 600;
+  background-color: #d6d3d1; /* stone-300 - slightly darker than cream panel */
+  border: none;
+  border-radius: 0.75rem;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), inset 0 1px 2px rgba(0, 0, 0, 0.06);
+  color: #1e293b; /* slate-800 - primary dark text */
+  transition: all 0.2s ease;
+  font-family: "Nunito", sans-serif;
+}
+
+.nameplate-input::placeholder {
+  color: #9ca3af; /* gray-400 - light gray */
+  font-size: 1.25rem;
+  font-weight: 400;
+}
+
+.nameplate-input:focus {
+  outline: none;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), inset 0 1px 2px rgba(0, 0, 0, 0.06), 0 0 0 3px rgba(34, 197, 94, 0.3);
+}
+
+/* === TEXTURED CONTAINER === */
+.textured-container {
+  background: 
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(0, 0, 0, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 60%, rgba(255, 255, 255, 0.2) 0%, transparent 50%),
+    linear-gradient(135deg, #e7e5e4 0%, #d6d3d1 50%, #a8a29e 100%);
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+  transform: translateY(-10px) scale(1.02);
+  position: relative;
+}
+
+.textured-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 2px,
+      rgba(255, 255, 255, 0.03) 2px,
+      rgba(255, 255, 255, 0.03) 4px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.02) 2px,
+      rgba(0, 0, 0, 0.02) 4px
+    );
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.textured-container::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #15803d, #16a34a, #22c55e, #16a34a, #15803d);
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0.8;
 }
