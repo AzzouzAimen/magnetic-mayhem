@@ -136,7 +136,7 @@ const GamePage = () => {
       />
       <Stamp
         shape="triangle"
-        color="#a3e635"
+        color="#eab308"
         position={{ top: "45.2%", left: "12%", width: "7.2%", height: "9%" }}
         onSelect={() => handleToolSelect("triangle")}
       />

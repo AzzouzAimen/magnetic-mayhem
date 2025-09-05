@@ -28,7 +28,7 @@ const MagneticBoard = ({
       if (canvas && context) {
         // Calculate the erase position and width for bidirectional erasing
         const erasePosition = canvas.width * eraseProgress;
-        const eraseWidth = 80; // Width of the erase area
+        const eraseWidth = 1; // Width of the erase area
         
         // Calculate the start and end positions for bidirectional erasing
         const startX = Math.max(0, erasePosition - eraseWidth / 2);
@@ -64,7 +64,7 @@ const MagneticBoard = ({
     const hexHeight = 14; // Smaller hexagons
     const hexRadius = hexWidth / 2;
     
-    context.strokeStyle = "#9ca3af";
+    context.strokeStyle = "#8d939e";
     context.lineWidth = 0.3; // Thinner lines for smaller hexagons
     
     // Calculate how many hexagons we need to fill the canvas with extra margin
@@ -90,6 +90,21 @@ const MagneticBoard = ({
         }
       }
     }
+  };
+
+  const drawRoundedRect = (context, x, y, width, height, radius) => {
+    const r = Math.min(radius, width / 2, height / 2);
+    context.beginPath();
+    context.moveTo(x + r, y);
+    context.lineTo(x + width - r, y);
+    context.quadraticCurveTo(x + width, y, x + width, y + r);
+    context.lineTo(x + width, y + height - r);
+    context.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+    context.lineTo(x + r, y + height);
+    context.quadraticCurveTo(x, y + height, x, y + height - r);
+    context.lineTo(x, y + r);
+    context.quadraticCurveTo(x, y, x + r, y);
+    context.closePath();
   };
 
   const resizeCanvas = () => {
@@ -126,20 +141,32 @@ const MagneticBoard = ({
     const y = pos.y;
     
     // Set dark gray color for stamps
-    context.fillStyle = "#4a4a4a";
-    
-    context.beginPath();
+    const color = "#4a4a4a";
+    context.fillStyle = color;
+    context.strokeStyle = color;
     if (shape === "square") {
-      context.rect(x - size / 2, y - size / 2, size, size);
+      const cornerRadius = Math.max(2, Math.round(size * 0.18));
+      drawRoundedRect(context, x - size / 2, y - size / 2, size, size, cornerRadius);
+      context.fill();
     } else if (shape === "circle") {
+      context.beginPath();
       context.arc(x, y, size / 2, 0, 2 * Math.PI);
+      context.fill();
     } else if (shape === "triangle") {
-      context.moveTo(x, y - size / 2);
-      context.lineTo(x - size / 2, y + size / 2);
-      context.lineTo(x + size / 2, y + size / 2);
+      const tSize = Math.round(size * 0.8);
+      context.beginPath();
+      context.moveTo(x, y - tSize / 2);
+      context.lineTo(x - tSize / 2, y + tSize / 2);
+      context.lineTo(x + tSize / 2, y + tSize / 2);
       context.closePath();
+      // Fill, then stroke with rounded joins to simulate rounded corners
+      context.fill();
+      context.lineJoin = "round";
+      context.lineCap = "round";
+      const cornerRadius = Math.max(2, Math.round(tSize * 0.18));
+      context.lineWidth = cornerRadius * 2;
+      context.stroke();
     }
-    context.fill();
   };
 
   const drawLine = (start, end) => {
@@ -261,7 +288,7 @@ const MagneticBoard = ({
   return (
     <div
       className="absolute"
-      style={{ top: "20%", left: "22%", width: "67%", height: "60%" }}
+      style={{ top: "20%", left: "23%", width: "64%", height: "61%" }}
     >
       <canvas
         ref={canvasRef}
