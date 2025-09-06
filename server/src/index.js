@@ -16,14 +16,34 @@ const registerBoardHandlers = require('./handlers/boardHandler');
 const app = express();
 const server = http.createServer(app);
 
+const inferredClientUrl = process.env.CLIENT_URL || 'https://magnetic-mayhem-client.onrender.com';
+const allowedOrigins = new Set([
+  inferredClientUrl,
+  'https://magnetic-mayhem-client.onrender.com',
+  'http://localhost:5173',
+  'http://localhost:4173',
+  'http://localhost:3000'
+]);
+
+const dynamicCorsOrigin = (origin, callback) => {
+  if (!origin) {
+    return callback(null, true);
+  }
+  if (allowedOrigins.has(origin)) {
+    return callback(null, true);
+  }
+  return callback(new Error(`CORS not allowed for origin: ${origin}`), false);
+};
+
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL,
+    origin: dynamicCorsOrigin,
+    credentials: true,
     methods: ["GET", "POST"]
   }
 });
 
-app.use(cors());
+app.use(cors({ origin: dynamicCorsOrigin, credentials: true }));
 
 app.get('/health', (req, res) => {
   res.status(200).send('OK');
