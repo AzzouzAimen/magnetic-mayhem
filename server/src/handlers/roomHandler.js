@@ -83,6 +83,14 @@ const registerRoomHandlers = (io, socket) => {
         if (room.players.size < 2) {
           clearInterval(room.timerInterval);
         }
+        
+        // If the host disconnected during a custom game, end the game
+        if (room.isCustomGame && socket.id === room.hostId) {
+          console.log(`[Host Disconnected] Ending custom game in room: ${roomId}`);
+          room.gameState = 'results';
+          const finalScores = Array.from(room.players.values()).sort((a, b) => b.score - a.score);
+          io.to(roomId).emit('game:over', finalScores);
+        }
         // If the room is now empty, delete it
         if (room.players.size === 0) {
           gameRooms.delete(roomId);
@@ -125,18 +133,32 @@ const registerRoomHandlers = (io, socket) => {
     const word = room.wordList.pop(); // Get the next word from the shuffled list
 
     // --- Round Logic ---
-    // Select the next drawer (simple rotation for now)
+    // Select the next drawer based on game mode
     const players = Array.from(room.players.values());
     if (players.length === 0) {
       console.log(`[Start New Round] No players in room: ${roomId}`);
       return;
     }
     
-    const currentDrawerIndex = room.currentDrawerId 
-      ? players.findIndex((p) => p.id === room.currentDrawerId)
-      : -1;
-    const nextDrawerIndex = (currentDrawerIndex + 1) % players.length;
-    const nextDrawer = players[nextDrawerIndex];
+    let nextDrawer;
+    if (room.isCustomGame) {
+      // In a custom game, the drawer is always the host
+      nextDrawer = room.players.get(room.hostId);
+    } else {
+      // In a normal game, rotate the drawer
+      const currentDrawerIndex = room.currentDrawerId 
+        ? players.findIndex((p) => p.id === room.currentDrawerId)
+        : -1;
+      const nextDrawerIndex = (currentDrawerIndex + 1) % players.length;
+      nextDrawer = players[nextDrawerIndex];
+    }
+    
+    // If the drawer somehow disconnected, we should handle that
+    if (!nextDrawer) {
+      console.error("Could not find next drawer, ending game.");
+      // TODO: End game gracefully
+      return;
+    }
 
     // Update the server's game state for this room
     room.gameState = "drawing";
@@ -161,6 +183,7 @@ const registerRoomHandlers = (io, socket) => {
       roundDuration: room.roundTime, // Send the correct duration
       currentRound: room.currentRound,
       totalRounds: room.totalRounds,
+      isCustomGame: room.isCustomGame, // NEW: Tell clients if it's a custom game
     });
 
     // Send the secret word ONLY to the new drawer
@@ -206,26 +229,30 @@ const registerRoomHandlers = (io, socket) => {
       // Configure the game based on options
       room.roundTime = options?.roundTime || 60;
 
-      // Set up the word list for the entire game
-      if (options?.customWords && options.customWords.length > 0) {
+      // --- NEW LOGIC: Check if custom words were provided ---
+      const hasCustomWords = options?.customWords && options.customWords.length > 0;
+      
+      room.isCustomGame = hasCustomWords; // Set the flag
+      room.hostId = hostId; // Store the host's ID
+
+      if (hasCustomWords) {
         room.wordList = shuffleArray([...options.customWords]);
+        // Lock the drawer to be the host for the entire game
+        room.currentDrawerId = hostId; 
+        room.totalRounds = room.wordList.length; // Rounds are now based on word list size
       } else {
         room.wordList = shuffleArray([...defaultWordList]);
+        room.currentDrawerId = null; // Use normal rotation
+        room.totalRounds = room.players.size * 2; // e.g., 2 rounds per player
       }
 
-      // --- NEW: Initialize round counters ---
-      room.totalRounds = room.players.size * 2; // e.g., 2 rounds per player
       room.currentRound = 0; // Will be incremented to 1 in startNewRound
 
       // Initialize scores
       room.players.forEach((player) => (player.score = 0));
-      room.currentDrawerId = null;
 
       console.log(
-        `[Game Started] Room: ${roomId} with options:`,
-        options,
-        `Word list length:`,
-        room.wordList.length
+        `[Game Started] Room: ${roomId}, Custom Game: ${room.isCustomGame}, Word list length: ${room.wordList.length}`
       );
       startNewRound(roomId);
     } else {
@@ -237,6 +264,12 @@ const registerRoomHandlers = (io, socket) => {
     // Find which room the socket is in
     for (const [roomId, room] of gameRooms.entries()) {
       if (room.players.has(socket.id)) {
+        
+        // --- NEW LOGIC: Prevent host from guessing in a custom game ---
+        if (room.isCustomGame && socket.id === room.hostId) {
+          return; // Simply ignore the guess
+        }
+        
         // Check if the guess is correct (and the guesser is not the drawer)
         if (
           room.currentWord.toLowerCase() === guess.toLowerCase() &&
@@ -310,6 +343,8 @@ const registerRoomHandlers = (io, socket) => {
       room.currentWord = '';
       room.currentRound = 0; // Reset round counter
       room.totalRounds = 0; // Reset total rounds
+      room.isCustomGame = false; // Reset custom game flag
+      room.hostId = null; // Reset host ID
       
       // Tell all clients to go back to the lobby state
       io.to(roomId).emit('game:lobby');

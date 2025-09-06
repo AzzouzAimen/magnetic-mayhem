@@ -8,7 +8,10 @@ const gameRooms = new Map();
 // 'ABCD': {
 //   roomId: 'ABCD',
 //   players: Map('socketId123': { id: 'socketId123', name: 'Player1' }),
-//   drawingHistory: []
+//   drawingHistory: [],
+//   isCustomGame: false, // NEW: A flag for our special mode
+//   hostId: 'socketId123', // NEW: Store who the host is
+//   wordList: []
 // }
 
 const defaultWordList  = [

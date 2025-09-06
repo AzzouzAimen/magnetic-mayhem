@@ -90,7 +90,7 @@ const HomePage = () => {
         <div className="w-full flex flex-col gap-4">
           <RetroButton color="red" onClick={handleCreateGame}>Create Game</RetroButton>
           <RetroButton color="yellow" onClick={handleJoinGame}>Join Game</RetroButton>
-          <RetroButton color="purple" as="Link" to="/solo">Play Solo</RetroButton>
+          <RetroButton color="purple" as="Link" to="/solo">Sandbox Mode</RetroButton>
         </div>
       </div>
     </div>

@@ -18,6 +18,12 @@ export const soundManager = {
     loadSound('stamp', '/sounds/stamp.mp3');
     loadSound('erase', '/sounds/erase.mp3');
     
+    // Set volume for stamp sound
+    const stampSound = sounds.get('stamp');
+    if (stampSound) {
+      stampSound.volume = 0.5; // Reduce stamp sound volume
+    }
+    
     // Looping sounds need special handling
     const drawSound = new Audio('/sounds/draw-loop.mp3');
     drawSound.loop = true;

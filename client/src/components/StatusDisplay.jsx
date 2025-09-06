@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 
 const StatusDisplay = ({ socket, isDrawer, currentWord, players, drawerId }) => {
   const [timeLeft, setTimeLeft] = useState(0);
+  const [isCustomGame, setIsCustomGame] = useState(false);
 
   useEffect(() => {
     if (!socket) return;
 
-    const handleRoundStart = ({ roundDuration }) => {
+    const handleRoundStart = ({ roundDuration, isCustomGame }) => {
       setTimeLeft(roundDuration);
+      setIsCustomGame(isCustomGame || false);
     };
 
     const handleTimerTick = (time) => {
@@ -46,6 +48,13 @@ const StatusDisplay = ({ socket, isDrawer, currentWord, players, drawerId }) => 
       <div className="pointer-events-none absolute -inset-[1.5px] rounded-2xl bg-gradient-to-b from-emerald-300/70 via-green-500/60 to-emerald-700/60 opacity-70 blur-[1px]"></div>
       <div className="relative h-full min-h-0 rounded-2xl p-1 bg-green-900/90 shadow-[inset_0_2px_0_rgba(255,255,255,.15)]">
         <div className="textured-container rounded-xl p-2 h-full flex flex-col gap-2">
+          {/* Custom Game Mode Indicator */}
+          {isCustomGame && (
+            <div className="text-center bg-yellow-100 border border-yellow-300 text-yellow-800 text-xs font-semibold px-2 py-1 rounded-md">
+              HOST IS THE DRAWER
+            </div>
+          )}
+
           {/* Timer */}
           <div
             className={`rounded-xl border-2 shadow-xl px-3 py-2 relative overflow-hidden flex flex-col items-center justify-center ${
