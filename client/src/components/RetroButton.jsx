@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './RetroButton.module.css'; // Import the CSS Module
 import clsx from 'clsx';
+import { soundManager } from '../utils/soundManager'; 
 
 // This custom hook remains a great way to manage the tilt effect
 const useRetroButtonEffects = (ref) => {
@@ -49,6 +50,13 @@ const RetroButton = ({ as, to, onClick, color = 'green', children, ...props }) =
 
   const colorClass = styles[color];
 
+  const handleClick = (e) => {
+    soundManager.play('click'); // Play the click sound
+    if (onClick) {
+      onClick(e); // Then call the original onClick handler
+    }
+  };
+
   // The simplified JSX structure. A single inner span is all we need.
   const buttonContent = (
     <span className={styles.topLayer}>
@@ -62,7 +70,7 @@ const RetroButton = ({ as, to, onClick, color = 'green', children, ...props }) =
     <Component
       ref={buttonRef}
       to={to}
-      onClick={onClick}
+      onClick={handleClick} // Use our new handler
       className={clsx(styles.retroBtn, colorClass, tiltClass)}
       {...props}
     >

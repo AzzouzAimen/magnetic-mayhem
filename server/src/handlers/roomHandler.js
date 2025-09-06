@@ -258,6 +258,9 @@ const registerRoomHandlers = (io, socket) => {
             text: `${guesser.name} guessed the word: ${room.currentWord}!`,
           });
 
+          // Emit success sound event
+          io.to(roomId).emit('game:correctGuess');
+
           console.log(
             `[Correct Guess] Room: ${roomId}, Player: ${guesser.name}`
           );

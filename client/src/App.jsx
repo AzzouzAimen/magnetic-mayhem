@@ -2,14 +2,19 @@ import { use, useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 import { io } from "socket.io-client";
 import { Toaster } from 'react-hot-toast';
-
-import MagneticBoard from "./components/MagneticBoard";
+import { soundManager } from './utils/soundManager'; 
 
 const socket = io("http://localhost:4001");
+// This is a flag to ensure init() is only called once, especially in Strict Mode
+let soundManagerInitialized = false;
 
 function App() {
   // useEffect to manage the connection
   useEffect(() => {
+    if (!soundManagerInitialized) {
+      soundManager.init();
+      soundManagerInitialized = true;
+    }
     // --- Define handlers ---
     const onConnect = () => {
       console.log(`✅ You're connected with id: ${socket.id}`);

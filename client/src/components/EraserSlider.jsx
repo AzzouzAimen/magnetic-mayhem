@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { soundManager } from '../utils/soundManager';
 
 const EraserSlider = ({ position, onErase, onEraseComplete, animateToProgress  }) => {
   const trackRef = useRef(null);
@@ -74,6 +75,8 @@ useEffect(() => {
     e.preventDefault();
     // Don't allow dragging if onErase is null (non-drawer mode)
     if (!onErase) return;
+    
+    soundManager.play('erase'); // Play erase sound when starting to erase
     
     if (handleRef.current) {
       // Remove any existing transition to ensure drag is snappy

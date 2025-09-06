@@ -35,7 +35,7 @@ const StatusDisplay = ({ socket, isDrawer, currentWord, players, drawerId }) => 
     const underscores = currentWord ? '_ '.repeat(currentWord.length).trim() : '';
     return (
       <div className="text-center">
-        <span className="text-stone-700 text-sm font-medium">Guess the word:</span>
+        <span className="text-stone-700 text-sm font-medium">Guess the word!</span>
         <span className="text-[#1d4ed8] text-xl font-medium ml-1 tracking-widest">{underscores}</span>
       </div>
     );

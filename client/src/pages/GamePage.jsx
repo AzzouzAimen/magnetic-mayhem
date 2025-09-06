@@ -9,6 +9,7 @@ import BoardFrame from "../components/BoardFrame";
 import Stamp from "../components/Stamp";
 import EraserSlider from "../components/EraserSlider";
 import GameOver from '../components/GameOver';
+import { soundManager } from '../utils/soundManager';
 
 const GamePage = () => {
   const { roomId } = useParams();
@@ -62,6 +63,10 @@ const GamePage = () => {
       setCurrentWord('');
     };
 
+    const handleCorrectGuess = () => {
+      soundManager.play('success');
+    };
+
     socket.on("lobby:update", handleLobbyUpdate);
     socket.on("round:start", handleRoundStart);
     socket.on("round:word", handleRoundWord);
@@ -69,6 +74,7 @@ const GamePage = () => {
     socket.on("board:erased", handleBoardErased);
     socket.on('game:over', handleGameOver);
     socket.on('game:lobby', handleReturnToLobby);
+    socket.on('game:correctGuess', handleCorrectGuess);
 
     return () => {
       socket.off("lobby:update", handleLobbyUpdate);
@@ -78,6 +84,7 @@ const GamePage = () => {
       socket.off("board:erased", handleBoardErased);
       socket.off('game:over', handleGameOver);
       socket.off('game:lobby', handleReturnToLobby);
+      socket.off('game:correctGuess', handleCorrectGuess);
     };
   }, [socket]);
 

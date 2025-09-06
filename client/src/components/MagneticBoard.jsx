@@ -1,4 +1,5 @@
-import React, { useRef, useState, useEffect } from "react"; 
+import React, { useRef, useState, useEffect } from "react";
+import { soundManager } from '../utils/soundManager'; 
 
 const MagneticBoard = ({
   socket,
@@ -251,6 +252,7 @@ const MagneticBoard = ({
   }, [socket]);
 
   const placeStamp = (shape, position) => {
+    soundManager.play('stamp'); // Play stamp sound
     drawShape(shape, position);
     if (socket) {
       socket.emit("stamp:place", { shape, position });
@@ -264,6 +266,7 @@ const MagneticBoard = ({
     const { offsetX, offsetY } = event.nativeEvent;
 
     if (activeTool === "pen") {
+      soundManager.startLoop('draw'); // Start drawing sound loop
       setIsDrawing(true);
       lastPoint.current = { x: offsetX, y: offsetY };
     } else {
@@ -283,7 +286,10 @@ const MagneticBoard = ({
     lastPoint.current = data.end;
   };
 
-  const stopDrawing = () => setIsDrawing(false);
+  const stopDrawing = () => {
+    soundManager.stopLoop('draw'); // Stop drawing sound loop
+    setIsDrawing(false);
+  };
 
   return (
     <div
