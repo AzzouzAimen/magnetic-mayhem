@@ -14,7 +14,10 @@ services:
       - key: PORT
         value: 4001
       - key: CLIENT_URL
-        value: https://${magnetic-mayhem-client.host}
+        fromService:
+          type: web
+          name: magnetic-mayhem-client # The service to get the value from
+          envVarKey: RENDER_EXTERNAL_URL # The specific key Render provides for the public URL
 
   # --------------------
   # The Frontend Client
@@ -28,7 +31,11 @@ services:
     plan: free
     http:
       port: 80
-    # --- THIS IS THE KEY TO THE SOLUTION ---
-    buildCommand: | # The '|' allows for a multi-line shell script
-      echo "VITE_API_URL=${magnetic-mayhem-server.host}" > .env.production
-      docker build -t $RENDER_IMAGE_NAME .
+    # Create the .env.production file before building
+    buildCommand: 'echo "VITE_API_URL=$VITE_API_URL" > .env.production && docker build -t $RENDER_IMAGE_NAME .'
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: magnetic-mayhem-server
+          envVarKey: RENDER_EXTERNAL_URL
