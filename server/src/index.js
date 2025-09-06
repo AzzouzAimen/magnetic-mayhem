@@ -25,6 +25,10 @@ const io = new Server(server, {
 
 app.use(cors());
 
+app.get('/health', (req, res) => {
+  res.status(200).send('OK');
+});
+
 // This function will be our main connection handler
 const onConnection = (socket) => {
   console.log(`✅ Client connected: ${socket.id}`);
