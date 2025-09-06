@@ -94,38 +94,6 @@ Magnetic Mayhem is a web-based party game that brings friends together in privat
 
 ---
 
-## 🎨 **Key Features Deep Dive**
-
-### **🧲 The Magnetic Board**
-
-- **Hex Pattern Background** - Authentic magnetic board texture
-- **Brush Drawing** - Textured brush strokes with slight randomness
-- **Stamp Tools** - Circle, square, and triangle stamps
-- **Real-time Sync** - All drawing actions synchronized across players
-
-### **🎯 The Eraser Slider**
-
-- **Smooth Animation** - Wipe effect that moves across the screen
-- **Real-time Sync** - Eraser progress synchronized for all players
-- **Visual Feedback** - Satisfying animation with sound effects
-- **Unique Innovation** - This feature sets the game apart from other drawing games
-
-### **🎵 Sound Design**
-
-- **Drawing Sounds** - Scratchy, textured audio feedback
-- **Stamp Effects** - Satisfying "clink" when placing stamps
-- **Eraser Animation** - "Swoosh" sound during wipe animation
-- **Success Sounds** - Celebration audio for correct guesses
-
-### **🎪 Retro Aesthetic**
-
-- **Custom Fonts** - Fredoka One and Nunito for nostalgic feel
-- **Animated Background** - Floating geometric shapes
-- **Button Effects** - Tilt animations on hover
-- **Color Scheme** - Bright, toy-like colors reminiscent of classic games
-
----
-
 ## 🎯 **Game Mechanics**
 
 ### **Scoring System**
