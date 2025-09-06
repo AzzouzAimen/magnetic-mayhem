@@ -7,6 +7,7 @@ services:
     env: docker
     repo: https://github.com/AzzouzAimen/magnetic-mayhem
     dockerfilePath: ./server/Dockerfile
+    dockerContext: ./server
     healthCheckPath: /health
     envVars:
       - key: PORT
@@ -27,6 +28,7 @@ services:
     env: docker
     repo: https://github.com/AzzouzAimen/magnetic-mayhem
     dockerfilePath: ./client/Dockerfile
+    dockerContext: ./client
     envVars:
       # --- MODIFICATION ---
       # We construct the server's URL manually
