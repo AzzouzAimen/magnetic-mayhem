@@ -7,13 +7,15 @@ services:
     env: docker
     repo: https://github.com/AzzouzAimen/magnetic-mayhem
     dockerfilePath: ./server/Dockerfile
-    dockerContext: ./server
+    dockerContext: ./server # Good practice: specifies the build context
     healthCheckPath: /health
+    plan: free # IMPORTANT: This specifies the free instance type
     envVars:
       - key: PORT
         value: 4001
       - key: CLIENT_URL
         value: https://${magnetic-mayhem-client.host}
+
   # --------------------
   # The Frontend Client
   # --------------------
@@ -22,7 +24,8 @@ services:
     env: docker
     repo: https://github.com/AzzouzAimen/magnetic-mayhem
     dockerfilePath: ./client/Dockerfile
-    dockerContext: ./client
+    dockerContext: ./client # Good practice: specifies the build context
+    plan: free # IMPORTANT: This specifies the free instance type
     envVars:
       - key: VITE_API_URL
         value: https://${magnetic-mayhem-server.host}
