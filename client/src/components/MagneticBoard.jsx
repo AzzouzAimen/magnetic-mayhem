@@ -208,8 +208,7 @@ const MagneticBoard = ({
 
   useEffect(() => {
     if (!socket) return;
-    console.log(`[MagneticBoard] Requesting history, isDrawer: ${isDrawer}`);
-    socket.emit("history:request");
+    
     const handleDrawing = (data) => {
       console.log(`[MagneticBoard] Received drawing event, isDrawer: ${isDrawer}`, data);
       drawLine(data.start, data.end);
@@ -239,15 +238,39 @@ const MagneticBoard = ({
         }
       });
     };
+    
+    // Listen for round start to request history at the right time
+    const handleRoundStart = () => {
+      console.log(`[MagneticBoard] Round started, requesting history, isDrawer: ${isDrawer}`);
+      // Clear the canvas first to ensure a clean slate
+      const context = contextRef.current;
+      const canvas = canvasRef.current;
+      if (context && canvas) {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        // Redraw the hex pattern background
+        const rect = canvas.getBoundingClientRect();
+        drawHexPattern(context, { width: rect.width, height: rect.height });
+      }
+      // Request the current drawing history
+      socket.emit("history:request");
+    };
+    
     socket.on("draw:drawing", handleDrawing);
     socket.on("stamp:place", handlePlaceStamp);
     socket.on("clear", handleClear);
     socket.on("draw:history", handleDrawHistory);
+    socket.on("round:start", handleRoundStart);
+    
+    // Request history immediately on mount as well (for players joining mid-game)
+    console.log(`[MagneticBoard] Component mounted, requesting history, isDrawer: ${isDrawer}`);
+    socket.emit("history:request");
+    
     return () => {
       socket.off("draw:drawing", handleDrawing);
       socket.off("stamp:place", handlePlaceStamp);
       socket.off("clear", handleClear);
       socket.off("draw:history", handleDrawHistory);
+      socket.off("round:start", handleRoundStart);
     };
   }, [socket]);
 

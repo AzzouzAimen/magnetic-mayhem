@@ -1,0 +1,22 @@
+version: '3.8'
+services:
+  server:
+    build:
+      context: ./server
+    ports:
+      - "4001:4001"
+    environment:
+      - PORT=4001
+      - CLIENT_URL=http://localhost:5173
+
+  client:
+    build:
+      context: ./client
+      args:
+        # For local Docker testing, we tell the client to connect to the server container
+        # The server is accessible by its service name 'server' and port '4001'
+        VITE_API_URL: http://localhost:4001 
+    ports:
+      - "5173:80"
+    depends_on:
+      - server

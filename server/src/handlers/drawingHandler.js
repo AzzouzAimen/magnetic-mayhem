@@ -23,8 +23,8 @@ const registerDrawingHandlers = (io, socket) => {
       //PERMISSION CHECK
       room.drawingHistory.push({ type: "drawing", ...data });
       console.log(`[Drawing] Broadcasting to room ${room.roomId}, history length: ${room.drawingHistory.length}`);
-      // Send drawing data ONLY to the other players in the same room
-      socket.broadcast.to(room.roomId).emit("draw:drawing", data);
+      // Send drawing data to ALL players in the room (including the drawer for consistency)
+      io.to(room.roomId).emit("draw:drawing", data);
     } else {
       console.log(`[Drawing] Permission denied - room: ${!!room}, isDrawer: ${room ? room.currentDrawerId === socket.id : false}`);
     }

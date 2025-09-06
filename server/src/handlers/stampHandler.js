@@ -17,7 +17,7 @@ const registerStampHandlers = (io, socket) => {
     if (room && room.currentDrawerId === socket.id) {
       // Add stamp events to the room-specific drawing history
       room.drawingHistory.push({ type: 'stamp', ...data });
-      socket.broadcast.to(room.roomId).emit('stamp:place', data);
+      io.to(room.roomId).emit('stamp:place', data);
     }
   };
 
