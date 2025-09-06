@@ -2,17 +2,16 @@ services:
   # ------------------
   # The Backend Server
   # ------------------
-  - type: web # This is a web service that runs code
+  - type: web
     name: magnetic-mayhem-server
-    env: docker # We are deploying a Docker container
-    repo: https://github.com/AzzouzAimen/magnetic-mayhem # IMPORTANT
-    dockerfilePath: ./server/Dockerfile # Path to the server's Dockerfile
-    healthCheckPath: /health # Add this for better monitoring (optional but good)
+    env: docker
+    repo: https://github.com/AzzouzAimen/magnetic-mayhem 
+    dockerfilePath: ./server/Dockerfile
+    healthCheckPath: /health
     envVars:
       - key: PORT
-        value: 4001 # The internal port your server runs on
+        value: 4001
       - key: CLIENT_URL
-        # This is a special Render variable that automatically points to your client's URL
         fromService:
           type: web
           name: magnetic-mayhem-client
@@ -21,16 +20,15 @@ services:
   # --------------------
   # The Frontend Client
   # --------------------
-  - type: web # We use 'web' instead of 'static' to run our Nginx Docker container
+  - type: web
     name: magnetic-mayhem-client
     env: docker
     repo: https://github.com/AzzouzAimen/magnetic-mayhem 
     dockerfilePath: ./client/Dockerfile
-    # --- This is the most important part for the client ---
-    dockerBuildCommand: > # The '>' allows for a multi-line command
-      docker build 
-      --build-arg VITE_API_URL=${magnetic-mayhem-server.url} 
-      -t $RENDER_IMAGE_NAME 
-      .
-    # The client's Dockerfile exposes port 80 for Nginx
-    # Render automatically maps its public URL to this port.
+    # --- THIS BLOCK IS NEW AND REPLACES dockerBuildCommand ---
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: magnetic-mayhem-server
+          property: url
