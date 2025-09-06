@@ -22,6 +22,24 @@ const registerRoomHandlers = (io, socket) => {
     }
   };
 
+  // --- NEW: Helper function to gracefully end a game ---
+  const endGame = (roomId, message = "The game has ended.") => {
+    const room = gameRooms.get(roomId);
+    if (!room) return;
+
+    console.log(`[Game Ended] Room: ${roomId}. Reason: ${message}`);
+    
+    // Stop any active timers to prevent memory leaks
+    if (room.timerInterval) clearInterval(room.timerInterval);
+
+    room.gameState = 'results';
+    const finalScores = Array.from(room.players.values()).sort((a, b) => b.score - a.score);
+    
+    // Announce the end of the game
+    io.to(roomId).emit('chat:message', { type: 'system', text: message });
+    io.to(roomId).emit('game:over', finalScores);
+  };
+
   const createGame = (nickname) => {
     const roomId = nanoid(4).toUpperCase();
     console.log(`[Create Game] Generated room ID: "${roomId}"`);
@@ -69,35 +87,65 @@ const registerRoomHandlers = (io, socket) => {
     socket.broadcast.to(normalizedRoomId).emit("lobby:update", players);
   };
 
+  // --- OVERHAULED: The leaveGame function ---
   const leaveGame = () => {
-    // Find which room the socket is in
+    let roomToUpdate = null; // We need to store which room was affected
+
     for (const [roomId, room] of gameRooms.entries()) {
       if (room.players.has(socket.id)) {
         const leavingPlayer = room.players.get(socket.id);
+        const wasDrawer = socket.id === room.currentDrawerId;
+        const wasHost = socket.id === room.hostId;
+
+        // Delete the player from the room's state
         room.players.delete(socket.id);
+        roomToUpdate = room; // Mark this room for potential updates
+
+        console.log(`[Player Left] ${leavingPlayer.name} left room ${roomId}`);
+        
+        // Always notify remaining players that someone left
         io.to(roomId).emit('chat:message', {
           type: 'system',
           text: `${leavingPlayer.name} has left the game.`
         });
-        // If the disconnected player was the host and the game stops
-        if (room.players.size < 2) {
-          clearInterval(room.timerInterval);
-        }
-        
-        // If the host disconnected during a custom game, end the game
-        if (room.isCustomGame && socket.id === room.hostId) {
-          console.log(`[Host Disconnected] Ending custom game in room: ${roomId}`);
-          room.gameState = 'results';
-          const finalScores = Array.from(room.players.values()).sort((a, b) => b.score - a.score);
-          io.to(roomId).emit('game:over', finalScores);
-        }
-        // If the room is now empty, delete it
+
+        // If the room is now empty, delete it and we're done
         if (room.players.size === 0) {
           gameRooms.delete(roomId);
-        } else {
-          updatePlayerList(roomId); // Update the remaining players
+          console.log(`[Room Deleted] Room ${roomId} is now empty.`);
+          return;
         }
-        break; // Exit loop once found and handled
+
+        // Always update the player list for the remaining players
+        updatePlayerList(roomId);
+
+        // --- NEW GAME STATE LOGIC ---
+        // Only apply game rules if the game was actually in progress
+        if (room.gameState === 'drawing') {
+          // Condition 1: Not enough players to continue. End the game.
+          if (room.players.size < 2) {
+            endGame(roomId, "Not enough players to continue.");
+            return;
+          }
+
+          // Condition 2: The host of a custom game left. End the game.
+          if (wasHost && room.isCustomGame) {
+            endGame(roomId, "The host has left the custom game.");
+            return;
+          }
+
+          // Condition 3: The drawer of a NORMAL game left. Start a new round.
+          if (wasDrawer && !room.isCustomGame) {
+            if (room.timerInterval) clearInterval(room.timerInterval);
+            io.to(roomId).emit('chat:message', {
+              type: 'system',
+              text: "The drawer has left! Starting a new round..."
+            });
+            setTimeout(() => startNewRound(roomId), 3000);
+            return;
+          }
+        }
+        break; // Player found and handled, exit the loop
       }
     }
   };
