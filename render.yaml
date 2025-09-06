@@ -1,31 +1,27 @@
 services:
-  # ------------------
-  # The Backend Server
-  # ------------------
   - type: web
     name: magnetic-mayhem-server
     env: docker
     repo: https://github.com/AzzouzAimen/magnetic-mayhem
     dockerfilePath: ./server/Dockerfile
-    dockerContext: ./server # Good practice: specifies the build context
+    dockerContext: ./server
     healthCheckPath: /health
-    plan: free # IMPORTANT: This specifies the free instance type
+    plan: free
     envVars:
       - key: PORT
         value: 4001
       - key: CLIENT_URL
         value: https://${magnetic-mayhem-client.host}
 
-  # --------------------
-  # The Frontend Client
-  # --------------------
   - type: web
     name: magnetic-mayhem-client
     env: docker
     repo: https://github.com/AzzouzAimen/magnetic-mayhem
     dockerfilePath: ./client/Dockerfile
-    dockerContext: ./client # Good practice: specifies the build context
-    plan: free # IMPORTANT: This specifies the free instance type
+    dockerContext: ./client
+    plan: free
+    http:
+      port: 80 # Explicitly tell Render that Nginx listens on port 80
     envVars:
       - key: VITE_API_URL
-        value: https://${magnetic-mayhem-server.host}
+        value: https://${magnetic-mayhem-server.host} # Construct the URL from the server's host
