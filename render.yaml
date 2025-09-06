@@ -12,14 +12,8 @@ services:
     envVars:
       - key: PORT
         value: 4001
-      # --- MODIFICATION ---
-      # We construct the client's URL manually
       - key: CLIENT_URL
-        # This tells Render not to automatically restart the server if the client's URL changes
-        # which is the correct behavior for this kind of reference.
-        sync: false
         value: https://${magnetic-mayhem-client.host}
-
   # --------------------
   # The Frontend Client
   # --------------------
@@ -30,8 +24,5 @@ services:
     dockerfilePath: ./client/Dockerfile
     dockerContext: ./client
     envVars:
-      # --- MODIFICATION ---
-      # We construct the server's URL manually
       - key: VITE_API_URL
-        sync: false
         value: https://${magnetic-mayhem-server.host}
