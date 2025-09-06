@@ -8,11 +8,7 @@ RUN npm install
 
 COPY . .
 
-
-# We now hardcode a placeholder. The entrypoint script will replace this.
-ENV VITE_API_URL=API_URL_PLACEHOLDER
-
-# Build the static files
+# We no longer set the ENV here. It will be provided by a file.
 RUN npm run build
 
 
@@ -22,17 +18,8 @@ FROM nginx:1.23-alpine
 # Copy the built files from the 'build' stage
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# --- NEW STEPS ---
-# Copy the entrypoint script into the container
-COPY entrypoint.sh /entrypoint.sh
-# Make it executable inside the container (this is a backup if the git command fails)
-RUN chmod +x /entrypoint.sh
+# We don't need the entrypoint script anymore
+# Nginx will start automatically
 
-# Tell the container to run our script first
-ENTRYPOINT ["/entrypoint.sh"]
-
-# Expose the port Nginx runs on
 EXPOSE 80
-
-# This is now the command that our entrypoint.sh will execute at the end
 CMD ["nginx", "-g", "daemon off;"]

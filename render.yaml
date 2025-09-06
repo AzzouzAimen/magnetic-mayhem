@@ -1,4 +1,7 @@
 services:
+  # ------------------
+  # The Backend Server
+  # ------------------
   - type: web
     name: magnetic-mayhem-server
     env: docker
@@ -13,6 +16,9 @@ services:
       - key: CLIENT_URL
         value: https://${magnetic-mayhem-client.host}
 
+  # --------------------
+  # The Frontend Client
+  # --------------------
   - type: web
     name: magnetic-mayhem-client
     env: docker
@@ -21,7 +27,8 @@ services:
     dockerContext: ./client
     plan: free
     http:
-      port: 80 # Explicitly tell Render that Nginx listens on port 80
-    envVars:
-      - key: VITE_API_URL
-        value: https://${magnetic-mayhem-server.host} # Construct the URL from the server's host
+      port: 80
+    # --- THIS IS THE KEY TO THE SOLUTION ---
+    buildCommand: | # The '|' allows for a multi-line shell script
+      echo "VITE_API_URL=${magnetic-mayhem-server.host}" > .env.production
+      docker build -t $RENDER_IMAGE_NAME .
