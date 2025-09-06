@@ -48,6 +48,7 @@ const onConnection = (socket) => {
 io.on('connection', onConnection);
 
 const PORT = process.env.PORT || 4001;
-server.listen(PORT, () => {
-  console.log(`🚀 Server is running on http://localhost:${PORT}`);
+const PUBLIC_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Server is running on ${PUBLIC_URL}`);
 });

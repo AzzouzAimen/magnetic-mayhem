@@ -6,7 +6,11 @@ import { soundManager } from './utils/soundManager';
 import { isMobileDevice } from './utils/mobileDetection';
 import MobileWarning from './components/MobileWarning'; 
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4001';
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  (typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+    ? 'https://magnetic-mayhem-server.onrender.com'
+    : 'http://localhost:4001');
 const socket = io(API_URL);
 // This is a flag to ensure init() is only called once, especially in Strict Mode
 let soundManagerInitialized = false;
