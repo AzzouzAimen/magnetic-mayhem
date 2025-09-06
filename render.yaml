@@ -1,0 +1,36 @@
+services:
+  # ------------------
+  # The Backend Server
+  # ------------------
+  - type: web # This is a web service that runs code
+    name: magnetic-mayhem-server
+    env: docker # We are deploying a Docker container
+    repo: https://github.com/AzzouzAimen/magnetic-mayhem # IMPORTANT
+    dockerfilePath: ./server/Dockerfile # Path to the server's Dockerfile
+    healthCheckPath: /health # Add this for better monitoring (optional but good)
+    envVars:
+      - key: PORT
+        value: 4001 # The internal port your server runs on
+      - key: CLIENT_URL
+        # This is a special Render variable that automatically points to your client's URL
+        fromService:
+          type: web
+          name: magnetic-mayhem-client
+          property: url
+
+  # --------------------
+  # The Frontend Client
+  # --------------------
+  - type: web # We use 'web' instead of 'static' to run our Nginx Docker container
+    name: magnetic-mayhem-client
+    env: docker
+    repo: https://github.com/AzzouzAimen/magnetic-mayhem 
+    dockerfilePath: ./client/Dockerfile
+    # --- This is the most important part for the client ---
+    dockerBuildCommand: > # The '>' allows for a multi-line command
+      docker build 
+      --build-arg VITE_API_URL=${magnetic-mayhem-server.url} 
+      -t $RENDER_IMAGE_NAME 
+      .
+    # The client's Dockerfile exposes port 80 for Nginx
+    # Render automatically maps its public URL to this port.
