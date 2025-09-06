@@ -2,13 +2,22 @@ import { use, useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 import { io } from "socket.io-client";
 import { Toaster } from 'react-hot-toast';
-import { soundManager } from './utils/soundManager'; 
+import { soundManager } from './utils/soundManager';
+import { isMobileDevice } from './utils/mobileDetection';
+import MobileWarning from './components/MobileWarning'; 
 
 const socket = io("http://localhost:4001");
 // This is a flag to ensure init() is only called once, especially in Strict Mode
 let soundManagerInitialized = false;
 
 function App() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check for mobile device on component mount
+  useEffect(() => {
+    setIsMobile(isMobileDevice());
+  }, []);
+
   // useEffect to manage the connection
   useEffect(() => {
     if (!soundManagerInitialized) {
@@ -34,6 +43,11 @@ function App() {
       socket.off('disconnect', onDisconnect);
     };
   }, []);
+
+  // Show mobile warning if device is detected as mobile
+  if (isMobile) {
+    return <MobileWarning />;
+  }
 
   return (
     <>
