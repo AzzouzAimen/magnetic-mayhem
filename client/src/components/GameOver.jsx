@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const GameOver = ({ scores, socket, isHost, roomId }) => {
   const handlePlayAgain = () => {
@@ -7,6 +8,16 @@ const GameOver = ({ scores, socket, isHost, roomId }) => {
 
   return (
     <div className="absolute inset-0 bg-gray-800 bg-opacity-90 flex flex-col items-center justify-center text-white z-50">
+      {/* Back to Menu Button */}
+      <div className="absolute top-4 left-4 z-10">
+        <Link
+          to="/"
+          className="px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition"
+        >
+          &larr; Back to Menu
+        </Link>
+      </div>
+      
       <h1 className="text-6xl font-bold mb-4">Game Over!</h1>
       <h2 className="text-3xl mb-8">Final Scores:</h2>
       

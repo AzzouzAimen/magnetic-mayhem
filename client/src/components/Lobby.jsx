@@ -1,6 +1,7 @@
 // src/components/Lobby.jsx
 
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { Copy, Crown } from "lucide-react";
 import AnimatedBackground from "./AnimatedBackground";
@@ -39,6 +40,16 @@ const Lobby = ({ roomId, players, socket }) => {
   return (
     <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden">
       <AnimatedBackground />
+
+      {/* Back to Menu Button */}
+      <div className="absolute top-4 left-4 z-10">
+        <Link
+          to="/"
+          className="px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition"
+        >
+          &larr; Back to Menu
+        </Link>
+      </div>
 
       {/* Lobby Title - Positioned above container */}
       <h2
